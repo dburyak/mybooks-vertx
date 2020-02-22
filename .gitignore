@@ -21,3 +21,46 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# Generated sources #
+**/src/generated
+
+# Temporary vim files
+*~
+*.swp
+
+### Gradle ###
+.gradle
+build/
+
+# Ignore Gradle GUI config
+gradle-app.setting
+
+# Cache of project
+.gradletasknamecache
+
+# idea
+.idea
+*.iml
+*.ipr
+*.iws
+out/
+
+# eclipse
+.project
+.settings
+.classpath
+bin/
+
+# h2 db files (integ tests db files)
+prodDb.mv.db
+prodDb.trace.db
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+replay_pid*.log
+*.hprof
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!**/gradle-wrapper.jar
+

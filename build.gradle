@@ -2,20 +2,39 @@ plugins {
     id 'com.palantir.git-version' version '0.12.2'
 }
 
-allprojects {
-    ext {
-        gradleWrapperVersion = gradleVersion
-    }
+ext {
+    gradleWrapperVersion = gradleVersion
+}
 
-    group = 'dburyak.demo.mybooks'
+wrapper {
+    gradleVersion = gradleWrapperVersion
+    distributionType = 'ALL'
+}
+
+allprojects {
+    group 'dburyak.demo.mybooks'
     version gitVersion()
     ext { isRelease = versionDetails().isCleanTag }
     if (!isRelease) {
         project.version += '-SNAPSHOT'
     }
+}
 
-    wrapper {
-        gradleVersion = gradleWrapperVersion
-        distributionType = 'ALL'
+subprojects {
+    apply plugin: 'java'
+
+    repositories {
+        mavenLocal()
+        jcenter()
+        mavenCentral()
+    }
+
+    sourceCompatibility = JavaVersion.VERSION_13
+    targetCompatibility = JavaVersion.VERSION_13
+
+    if (!path == ':tools') {
+        dependencies {
+            implementation project(':tools')
+        }
     }
 }

@@ -1,0 +1,21 @@
+plugins {
+    id 'com.palantir.git-version' version '0.12.2'
+}
+
+allprojects {
+    ext {
+        gradleWrapperVersion = gradleVersion
+    }
+
+    group = 'dburyak.demo.mybooks'
+    version gitVersion()
+    ext { isRelease = versionDetails().isCleanTag }
+    if (!isRelease) {
+        project.version += '-SNAPSHOT'
+    }
+
+    wrapper {
+        gradleVersion = gradleWrapperVersion
+        distributionType = 'ALL'
+    }
+}

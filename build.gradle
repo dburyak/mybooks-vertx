@@ -32,9 +32,33 @@ subprojects {
     sourceCompatibility = JavaVersion.VERSION_13
     targetCompatibility = JavaVersion.VERSION_13
 
-    if (!path == ':tools') {
+    if (path != ':tools') {
         dependencies {
             implementation project(':tools')
+        }
+
+        ext { generatedResourcesDir = file("${buildDir}/generated-resources") }
+
+        task generateVersionInfo() {
+            def projectVersion = project.version
+            def gitRevision = versionDetails().gitHashFull
+            def outFiles = fileTree(generatedResourcesDir)
+            inputs.property('version', projectVersion)
+            inputs.property('revision', gitRevision)
+            outputs.files(outFiles)
+            doLast {
+                generatedResourcesDir.mkdirs()
+                file("${generatedResourcesDir}/version.txt").text = projectVersion
+                file("${generatedResourcesDir}/revision.txt").text = gitRevision
+            }
+        }
+
+        sourceSets.each {
+            it.resources.srcDirs generatedResourcesDir
+        }
+
+        tasks.withType(ProcessResources) {
+            dependsOn generateVersionInfo
         }
     }
 }

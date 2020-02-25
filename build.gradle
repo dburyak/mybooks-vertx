@@ -33,8 +33,17 @@ subprojects {
     targetCompatibility = JavaVersion.VERSION_13
 
     if (path != ':tools') {
+        apply plugin: 'application'
+
         dependencies {
             implementation project(':tools')
+
+            // log4j2 common configuration (async loggers)
+            implementation "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+            implementation "com.lmax:disruptor:${disruptorVersion}"
+            implementation "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+            implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+            implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}"
         }
 
         ext { generatedResourcesDir = file("${buildDir}/generated-resources") }
@@ -59,6 +68,14 @@ subprojects {
 
         tasks.withType(ProcessResources) {
             dependsOn generateVersionInfo
+        }
+
+        application {
+            applicationDefaultJvmArgs += [
+                    '-Dlog4j2.contextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector',
+                    '-Dlog4j2.asyncLoggerRingBufferSize=1048576', // 1024 * 1024
+                    '-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory'
+            ]
         }
     }
 }

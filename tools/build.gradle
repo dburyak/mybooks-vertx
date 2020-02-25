@@ -29,5 +29,5 @@ dependencies {
     testAnnotationProcessor "io.micronaut:micronaut-validation:${micronautDiVersion}", excludeMicronautHttp
 
     // other
-    api "org.slf4j:slf4j-api:${slf4ApiVersion}"
+    api "org.slf4j:slf4j-api:${slf4jApiVersion}"
 }

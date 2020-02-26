@@ -41,8 +41,4 @@ public abstract class KryoMessageCodec implements MessageCodec<Object, Object> {
     public final byte systemCodecID() {
         return -1;
     }
-
-    public void setKryo(Kryo kryo) {
-        this.kryo = kryo;
-    }
 }

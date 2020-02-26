@@ -1,3 +1,5 @@
+import java.time.Instant
+
 plugins {
     id 'com.palantir.git-version' version '0.12.2'
 }
@@ -32,6 +34,19 @@ subprojects {
     sourceCompatibility = JavaVersion.VERSION_13
     targetCompatibility = JavaVersion.VERSION_13
 
+    dependencies {
+        // micronaut DI
+        def excludeMicronautHttp = {
+            exclude group: 'io.micronaut', module: 'micronaut-http'
+        }
+        annotationProcessor "io.micronaut:micronaut-inject-java:${micronautDiVersion}"
+        implementation "io.micronaut:micronaut-inject:${micronautDiVersion}"
+        testAnnotationProcessor "io.micronaut:micronaut-inject-java:${micronautDiVersion}"
+        annotationProcessor "io.micronaut:micronaut-validation:${micronautDiVersion}", excludeMicronautHttp
+        implementation "io.micronaut:micronaut-validation:${micronautDiVersion}", excludeMicronautHttp
+        testAnnotationProcessor "io.micronaut:micronaut-validation:${micronautDiVersion}", excludeMicronautHttp
+    }
+
     if (path != ':tools') {
         apply plugin: 'application'
 
@@ -59,6 +74,7 @@ subprojects {
                 generatedResourcesDir.mkdirs()
                 file("${generatedResourcesDir}/version.txt").text = projectVersion
                 file("${generatedResourcesDir}/revision.txt").text = gitRevision
+                file("${generatedResourcesDir}/built_at.txt").text = Instant.now() as String
             }
         }
 

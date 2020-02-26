@@ -17,17 +17,7 @@ dependencies {
     api "io.vertx:vertx-health-check:${vertxVersion}"
     api "io.vertx:vertx-mongo-client:${vertxVersion}"
 
-    // micronaut DI
-    def excludeMicronautHttp = {
-        exclude group: 'io.micronaut', module: 'micronaut-http'
-    }
-    annotationProcessor "io.micronaut:micronaut-inject-java:${micronautDiVersion}"
-    api "io.micronaut:micronaut-inject:${micronautDiVersion}"
-    testAnnotationProcessor "io.micronaut:micronaut-inject-java:${micronautDiVersion}"
-    annotationProcessor "io.micronaut:micronaut-validation:${micronautDiVersion}", excludeMicronautHttp
-    api "io.micronaut:micronaut-validation:${micronautDiVersion}", excludeMicronautHttp
-    testAnnotationProcessor "io.micronaut:micronaut-validation:${micronautDiVersion}", excludeMicronautHttp
-
     // other
     api "org.slf4j:slf4j-api:${slf4jApiVersion}"
+    api "com.esotericsoftware:kryo:${kryoVersion}"
 }

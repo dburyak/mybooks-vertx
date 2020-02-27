@@ -5,15 +5,15 @@ import dburyak.demo.mybooks.MicronautVertxApplication;
 
 import java.util.List;
 
-public class AuthApp extends MicronautVertxApplication {
+public class App extends MicronautVertxApplication {
     public static void main(String[] args) {
-        var app = new AuthApp();
+        var app = new App();
         app.start().subscribe();
         Runtime.getRuntime().addShutdownHook(new Thread(() -> app.stop().subscribe()));
     }
 
     @Override
     public List<MicronautVerticleProducer> getVerticlesProducers() {
-        return List.of(new AuthAboutVerticle.Producer());
+        return List.of(new AboutVerticle.Producer(), new HttpServerVerticle.Producer());
     }
 }

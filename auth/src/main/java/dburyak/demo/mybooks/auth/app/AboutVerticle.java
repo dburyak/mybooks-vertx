@@ -1,15 +1,14 @@
 package dburyak.demo.mybooks.auth.app;
 
-import dburyak.demo.mybooks.AboutVerticle;
 import dburyak.demo.mybooks.MicronautVerticle;
 import dburyak.demo.mybooks.MicronautVerticleProducer;
 
 import javax.inject.Singleton;
 
 @Singleton
-public class AuthAboutVerticle extends AboutVerticle {
-    public static final String ADDR_BRIEF_INFO = AuthAboutVerticle.class.getCanonicalName() + ".briefInfo";
-    public static final String ADDR_DETAILED_INFO = AuthAboutVerticle.class.getCanonicalName() + ".detailedInfo";
+public class AboutVerticle extends dburyak.demo.mybooks.AboutVerticle {
+    public static final String ADDR_BRIEF_INFO = AboutVerticle.class.getCanonicalName() + ".briefInfo";
+    public static final String ADDR_DETAILED_INFO = AboutVerticle.class.getCanonicalName() + ".detailedInfo";
 
     @Override
     protected String getBriefInfoAddr() {
@@ -25,7 +24,7 @@ public class AuthAboutVerticle extends AboutVerticle {
 
         @Override
         protected MicronautVerticle doCreateVerticle() {
-            return new AuthAboutVerticle();
+            return new AboutVerticle();
         }
     }
 }

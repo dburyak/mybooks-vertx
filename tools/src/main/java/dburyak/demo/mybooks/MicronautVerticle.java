@@ -60,7 +60,7 @@ public class MicronautVerticle extends AbstractVerticle {
         return Completable.complete();
     }
 
-    public Context getVertxContext() {
+    public final Context getVertxContext() {
         return vertxContext;
     }
 }

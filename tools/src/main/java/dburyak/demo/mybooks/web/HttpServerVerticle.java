@@ -1,10 +1,10 @@
-package dburyak.demo.mybooks;
+package dburyak.demo.mybooks.web;
 
+import dburyak.demo.mybooks.MicronautVerticle;
 import io.reactivex.Completable;
 import io.reactivex.Single;
 import io.vertx.reactivex.core.http.HttpServer;
 import io.vertx.reactivex.ext.web.Router;
-import io.vertx.reactivex.ext.web.handler.SessionHandler;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -15,15 +15,12 @@ public abstract class HttpServerVerticle extends MicronautVerticle {
     @Inject
     protected HttpServer httpServer;
 
-    @Inject
-    protected SessionHandler sessionHandler;
-
     @Override
     protected final Completable doStart() {
         return Single
                 .fromCallable(() -> {
                     var router = Router.router(vertx);
-                    registerHttpHandlers(router);
+                    buildEndpoints(router);
                     return router;
                 })
                 .flatMap(router -> httpServer
@@ -37,8 +34,5 @@ public abstract class HttpServerVerticle extends MicronautVerticle {
         return httpServer.rxClose();
     }
 
-    protected void registerHttpHandlers(Router router) {
-        // set session auth handler first in default implementation
-        router.route().handler(sessionHandler);
-    }
+    protected abstract void buildEndpoints(Router router);
 }

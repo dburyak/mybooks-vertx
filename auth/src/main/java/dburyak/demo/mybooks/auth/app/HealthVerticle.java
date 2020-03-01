@@ -6,13 +6,13 @@ import dburyak.demo.mybooks.MicronautVerticleProducer;
 import javax.inject.Singleton;
 
 @Singleton
-public class AboutVerticle extends dburyak.demo.mybooks.AboutVerticle {
+public class HealthVerticle extends dburyak.demo.mybooks.HealthVerticle {
 
-    public static class Producer extends MicronautVerticleProducer {
+    public static final class Producer extends MicronautVerticleProducer {
 
         @Override
         protected MicronautVerticle doCreateVerticle() {
-            return new AboutVerticle();
+            return new HealthVerticle();
         }
     }
 }

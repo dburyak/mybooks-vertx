@@ -1,6 +1,7 @@
 package dburyak.demo.mybooks.web;
 
 import io.micronaut.context.annotation.Factory;
+import io.micronaut.context.annotation.Prototype;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.http.HttpServer;
@@ -15,8 +16,9 @@ public class HttpServerFactory {
         return vertx.createHttpServer(httpServerOptions);
     }
 
-    @Singleton
+    @Prototype
     public HttpServerOptions httpServerOptions() {
+        // FIXME: port should be configured in options
         return new HttpServerOptions().setPort(8097);
     }
 }

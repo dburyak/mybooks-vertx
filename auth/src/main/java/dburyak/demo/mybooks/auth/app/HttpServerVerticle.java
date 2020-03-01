@@ -2,30 +2,25 @@ package dburyak.demo.mybooks.auth.app;
 
 import dburyak.demo.mybooks.MicronautVerticle;
 import dburyak.demo.mybooks.MicronautVerticleProducer;
-import dburyak.demo.mybooks.web.Endpoints;
+import dburyak.demo.mybooks.web.AuthenticatedMicroserviceHttpServerVerticle;
 import io.vertx.reactivex.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Singleton
-public class HttpServerVerticle extends dburyak.demo.mybooks.HttpServerVerticle {
+public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerticle {
     private static final Logger log = LoggerFactory.getLogger(HttpServerVerticle.class);
 
-    @Inject
-    private Endpoints endpoints;
+    @Override
+    protected void doBuildPublicEndpoints(Router router) {
+
+    }
 
     @Override
-    protected void registerHttpHandlers(Router router) {
-        super.registerHttpHandlers(router);
-        router.get(endpoints.getHealth()).handler(ctx -> {
-            var user = ctx.user();
-            log.info("user : {}", user);
-            log.info("test ....");
-            ctx.response().setStatusCode(200).end();
-        });
+    protected void doBuildProtectedEndpoints(Router router) {
+
     }
 
     public static class Producer extends MicronautVerticleProducer {

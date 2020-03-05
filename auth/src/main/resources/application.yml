@@ -1,0 +1,16 @@
+jwt:
+  issuer: ":mybooks:service:auth"
+  algorithm: "HS256"
+  is-symmetric: true
+
+  # this should be in env of course
+  private-key: "strong password"
+  user-token:
+    access:
+      expires-in-minutes: 5
+    refresh:
+      # 8 days: 8*24*60 = 11520
+      expires-in-minutes: 11520
+  service-token:
+    expires-in-seconds: 60
+

@@ -16,10 +16,11 @@ public class App extends MicronautVertxApplication {
     }
 
     @Override
-    public List<MicronautVerticleProducer> getVerticlesProducers() {
-        return List.of(
+    public List<MicronautVerticleProducer<?>> getVerticlesProducers() {
+        return List.<MicronautVerticleProducer<?>>of(
                 new AboutVerticle.Producer(),
                 new HealthVerticle.Producer(),
-                new HttpServerVerticle.Producer());
+                new HttpServerVerticle.Producer(),
+                new ServiceTokenVerticle.Producer());
     }
 }

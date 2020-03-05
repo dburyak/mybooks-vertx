@@ -115,7 +115,7 @@ public abstract class MicronautVertxApplication {
                 });
     }
 
-    public final Observable<String> deployVerticle(MicronautVerticleProducer verticleProducer) {
+    public final Observable<String> deployVerticle(MicronautVerticleProducer<?> verticleProducer) {
         var num = verticleProducer.getDeploymentOptions().getInstances();
         var opts = num > 1
                 ? new DeploymentOptions(verticleProducer.getDeploymentOptions()).setInstances(1)
@@ -174,7 +174,7 @@ public abstract class MicronautVertxApplication {
                 }));
     }
 
-    public abstract List<MicronautVerticleProducer> getVerticlesProducers();
+    public abstract List<MicronautVerticleProducer<?>> getVerticlesProducers();
 
     private Single<ApplicationContext> startAppContext() {
         return Single

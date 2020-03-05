@@ -13,8 +13,6 @@ import io.vertx.reactivex.ext.auth.AuthProvider;
 import io.vertx.reactivex.ext.auth.User;
 import io.vertx.reactivex.ext.web.Route;
 import io.vertx.reactivex.ext.web.Router;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -33,7 +31,6 @@ import static io.vertx.core.http.HttpMethod.GET;
  */
 @Singleton
 public abstract class AuthenticatedMicroserviceHttpServerVerticle extends AuthenticatedHttpServerVerticle {
-    private static final Logger log = LoggerFactory.getLogger(AuthenticatedMicroserviceHttpServerVerticle.class);
 
     @Inject
     private AuthProvider authProvider;
@@ -63,9 +60,11 @@ public abstract class AuthenticatedMicroserviceHttpServerVerticle extends Authen
         doBuildProtectedEndpoints(router);
     }
 
-    protected abstract void doBuildPublicEndpoints(Router router);
+    protected void doBuildPublicEndpoints(Router router) {
+    }
 
-    protected abstract void doBuildProtectedEndpoints(Router router);
+    protected void doBuildProtectedEndpoints(Router router) {
+    }
 
     protected void buildHealth(Route route) {
         checkNeededVerticles();

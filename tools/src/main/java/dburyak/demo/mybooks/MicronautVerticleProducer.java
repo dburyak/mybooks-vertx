@@ -7,7 +7,7 @@ import io.vertx.core.Verticle;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public abstract class MicronautVerticleProducer implements Supplier<Verticle> {
+public abstract class MicronautVerticleProducer<I extends MicronautVerticleProducer<I>> implements Supplier<Verticle> {
     private String name = getClass().getCanonicalName();
     private ApplicationContext verticleBeanCtx;
     private DeploymentOptions deploymentOptions = new DeploymentOptions();
@@ -28,21 +28,24 @@ public abstract class MicronautVerticleProducer implements Supplier<Verticle> {
         return name;
     }
 
-    public void setName(String name) {
+    public I setName(String name) {
         this.name = name;
+        return (I) this;
     }
 
-    public void setVerticleBeanCtx(ApplicationContext verticleBeanCtx) {
+    public I setVerticleBeanCtx(ApplicationContext verticleBeanCtx) {
         Objects.requireNonNull(verticleBeanCtx);
         this.verticleBeanCtx = verticleBeanCtx;
+        return (I) this;
     }
 
     public DeploymentOptions getDeploymentOptions() {
         return deploymentOptions;
     }
 
-    public void setDeploymentOptions(DeploymentOptions deploymentOptions) {
+    public I setDeploymentOptions(DeploymentOptions deploymentOptions) {
         Objects.requireNonNull(deploymentOptions);
         this.deploymentOptions = deploymentOptions;
+        return (I) this;
     }
 }

@@ -8,7 +8,7 @@ import javax.inject.Singleton;
 @Singleton
 public class AboutVerticle extends dburyak.demo.mybooks.AboutVerticle {
 
-    public static class Producer extends MicronautVerticleProducer {
+    public static class Producer extends MicronautVerticleProducer<Producer> {
 
         @Override
         protected MicronautVerticle doCreateVerticle() {

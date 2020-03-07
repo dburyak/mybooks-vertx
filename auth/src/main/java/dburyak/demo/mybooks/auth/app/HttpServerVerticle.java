@@ -47,7 +47,7 @@ public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerti
     @PostConstruct
     private void init() {
         var sampleToken = jwtAuth.generateToken(new JsonObject(), new JWTOptions()
-                .setIssuer(":mybooks:service:user")
+                .setIssuer("mybooks.service.user")
                 .setExpiresInMinutes(10)
                 .setPermissions(List.of(":user-token:generate"))
         );

@@ -13,7 +13,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwZXJtaXNzaW9ucyI6WyI6dXNlci10b2tlbjpnZW5lcmF0ZSJdLCJpYXQiOjE1ODM2MTg5ODAsImV4cCI6MTU4MzYxOTU4MCwiaXNzIjoiOm15Ym9va3M6c2VydmljZTp1c2VyIn0.Lz8Ivf_dHhIls-b5RWjxZ7A0AoWegKzbQiaII6ymNks",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwZXJtaXNzaW9ucyI6WyI6dXNlci10b2tlbjpnZW5lcmF0ZSJdLCJpYXQiOjE1ODM2MTk5OTIsImV4cCI6MTU4MzYyMDU5MiwiaXNzIjoibXlib29rcy5zZXJ2aWNlLnVzZXIifQ.y7N91U_c1I5Hsm7OogaxmlxXn3HpLeOpOYdo_RCghwc",
 							"type": "string"
 						}
 					]
@@ -44,7 +44,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base-url}}/user-token?data=eyJrMSI6InYxIiwiazIiOiJ2MiJ9",
+							"raw": "{{base-url}}/user-token?claims=eyJrMSI6InYxIiwiazIiOiJ2MiJ9",
 							"host": [
 								"{{base-url}}"
 							],
@@ -53,7 +53,7 @@
 							],
 							"query": [
 								{
-									"key": "data",
+									"key": "claims",
 									"value": "eyJrMSI6InYxIiwiazIiOiJ2MiJ9",
 									"description": "Base64 encoded user-token json claims"
 								}
@@ -70,11 +70,11 @@
 						},
 						{
 							"key": "content-length",
-							"value": "428"
+							"value": "390"
 						}
 					],
 					"cookie": [],
-					"body": "{\n    \"access-token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJrMSI6InYxIiwiazIiOiJ2MiIsImlhdCI6MTU4MzYxOTAzMCwiZXhwIjoxNTgzNjE5MzMwLCJpc3MiOiI6bXlib29rczpzZXJ2aWNlOmF1dGgifQ.2WPDsyqzibeiHuaPeBntOfd-5JaxjzTRPwD5QoTSr2w\",\n    \"refresh-token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJrMSI6InYxIiwiazIiOiJ2MiIsImlhdCI6MTU4MzYxOTAzMCwiZXhwIjoxNTg0MzEwMjMwLCJpc3MiOiI6bXlib29rczpzZXJ2aWNlOmF1dGgifQ.J-x5XEH-YpJbhn5Xankj1sIXaLoJ8n8241CVmv2F4UE\"\n}"
+					"body": "{\n    \"access-token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJrMSI6InYxIiwiazIiOiJ2MiIsImlhdCI6MTU4MzYyMDAyMywiZXhwIjoxNTgzNjIwMzIzLCJpc3MiOiJteWJvb2tzIn0.D_PBeeCMFPZR2wNI0uiBjAu4CWUB-O3muDF-jAHHOKU\",\n    \"refresh-token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJrMSI6InYxIiwiazIiOiJ2MiIsImlhdCI6MTU4MzYyMDAyMywiZXhwIjoxNTg0MzExMjIzLCJpc3MiOiJteWJvb2tzIn0.sw1pMnNOyBtzvDbfhlJ2_KEWgNhrajdIzccmxxS_mUk\"\n}"
 				}
 			]
 		}

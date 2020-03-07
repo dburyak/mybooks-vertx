@@ -1,5 +1,5 @@
 jwt:
-  issuer: ":mybooks:service:auth"
+  issuer: "mybooks"
   algorithm: "HS256"
   is-symmetric: true
 

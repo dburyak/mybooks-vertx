@@ -127,7 +127,7 @@ public class GetUserTokenEndpoint implements Endpoint {
     private boolean isRequestFromAllowedService(JsonObject principal) {
         // only "user" service can request user-token generation
         var iss = principal.getString("iss");
-        return iss != null && iss.startsWith(":mybooks:service:user");
+        return iss != null && iss.startsWith("mybooks.service.user");
     }
 
     private Single<Boolean> hasPermissionToGenerateToken(User user) {

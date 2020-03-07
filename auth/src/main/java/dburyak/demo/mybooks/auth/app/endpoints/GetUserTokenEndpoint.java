@@ -19,6 +19,8 @@ import io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Base64;
+import java.util.List;
+import java.util.UUID;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
@@ -91,7 +93,7 @@ public class GetUserTokenEndpoint implements Endpoint {
                     try {
                         var dataBase64 = ctx.queryParams().get(PARAM_NAME_DATA);
                         var jsonStr = new String(base64Decoder.decode(dataBase64));
-                        ctx.put("dataJson", Json.decodeValue(jsonStr));
+                        ctx.put("claimsJson", Json.decodeValue(jsonStr));
                     } catch (Exception cause) {
                         var err = new ValidationException(PARAM_NAME_DATA + " must be valid base64 encoded json",
                                 JSON_NOT_PARSABLE, cause);
@@ -105,12 +107,15 @@ public class GetUserTokenEndpoint implements Endpoint {
     @Override
     public Handler<RoutingContext> reqHandler() {
         return (RoutingContext ctx) -> {
-            var userDataJson = ctx.<JsonObject>get("dataJson");
+            var userClaimsJson = ctx.<JsonObject>get("claimsJson");
             Single.zip(
-                    Single.fromCallable(() -> jwtAuth.generateToken(userDataJson, buildBaseUserJwtOptions()
+                    Single.fromCallable(() -> jwtAuth.generateToken(userClaimsJson, buildBaseUserJwtOptions()
                             .setExpiresInMinutes(jwtUserAccessExpMin))),
-                    Single.fromCallable(() -> jwtAuth.generateToken(userDataJson, buildBaseUserJwtOptions()
-                            .setExpiresInMinutes(jwtUserRefreshExpMin))),
+                    Single.fromCallable(() -> jwtAuth.generateToken(userClaimsJson
+                                    .put("jti", UUID.randomUUID().toString()),
+                            buildBaseUserJwtOptions()
+                                    .setAudience(List.of(jwtIssuer))
+                                    .setExpiresInMinutes(jwtUserRefreshExpMin))),
                     (accessToken, refreshToken) -> new JsonObject()
                             .put("access-token", accessToken)
                             .put("refresh-token", refreshToken))

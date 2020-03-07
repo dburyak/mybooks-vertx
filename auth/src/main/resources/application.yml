@@ -4,7 +4,7 @@ jwt:
   is-symmetric: true
 
   # this should be in env of course
-  private-key: "strong password"
+  private-key: "strong shared password"
   user-token:
     access:
       expires-in-minutes: 5
@@ -16,4 +16,3 @@ jwt:
 
 http:
   port: 8097
-

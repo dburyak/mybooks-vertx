@@ -28,7 +28,7 @@ import static io.vertx.ext.web.api.validation.ValidationException.ErrorType.JSON
 
 @Singleton
 public class GetUserTokenEndpoint implements Endpoint {
-    public static final String PARAM_NAME_DATA = "data";
+    public static final String PARAM_NAME_DATA = "claims";
 
     @Property(name = "jwt.issuer")
     private String jwtIssuer;

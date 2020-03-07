@@ -2,6 +2,7 @@ package dburyak.demo.mybooks.web;
 
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.reactivex.ext.web.Route;
 import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.RoutingContext;
@@ -113,6 +114,20 @@ public interface Endpoint {
                 route.handler(validator);
             }
             route.handler(reqHandler);
+            route.failureHandler(ctx -> {
+                var err = ctx.failure();
+                if (err instanceof ValidationException) {
+                    var validationErr = (ValidationException) err;
+                    var errDescr = "message: " + validationErr.getMessage() + "\n" +
+                            "type: " + validationErr.type() + "\n" +
+                            "param: " + validationErr.parameterName() + "\n" +
+                            "value: " + validationErr.value() + "\n" +
+                            "rule: " + validationErr.validationRule();
+                    ctx.response().end(errDescr);
+                } else {
+                    ctx.next();
+                }
+            });
         }
     }
 }

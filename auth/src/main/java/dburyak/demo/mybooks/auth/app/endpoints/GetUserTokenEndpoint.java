@@ -13,7 +13,6 @@ import io.vertx.reactivex.ext.auth.User;
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
 import io.vertx.reactivex.ext.web.Route;
 import io.vertx.reactivex.ext.web.RoutingContext;
-import io.vertx.reactivex.ext.web.api.RequestParameters;
 import io.vertx.reactivex.ext.web.api.validation.CustomValidator;
 import io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler;
 
@@ -28,7 +27,7 @@ import static io.vertx.ext.web.api.validation.ParameterType.BASE64;
 import static io.vertx.ext.web.api.validation.ValidationException.ErrorType.JSON_NOT_PARSABLE;
 
 @Singleton
-public class UserTokenEndpoint implements Endpoint {
+public class GetUserTokenEndpoint implements Endpoint {
     public static final String PARAM_NAME_DATA = "data";
 
     @Property(name = "jwt.issuer")
@@ -90,13 +89,15 @@ public class UserTokenEndpoint implements Endpoint {
                 .addQueryParam(PARAM_NAME_DATA, BASE64, true)
                 .addCustomValidatorFunction(new CustomValidator(ctx -> {
                     try {
-                        var dataBase64 = ctx.<RequestParameters>get("requestParameters")
-                                .queryParameter(PARAM_NAME_DATA).getString();
+                        var dataBase64 = ctx.queryParams().get(PARAM_NAME_DATA);
                         var jsonStr = new String(base64Decoder.decode(dataBase64));
                         ctx.put("dataJson", Json.decodeValue(jsonStr));
-                    } catch (Exception e) {
-                        throw new ValidationException(PARAM_NAME_DATA + " must be valid base64 encoded json",
-                                JSON_NOT_PARSABLE, e);
+                    } catch (Exception cause) {
+                        var err = new ValidationException(PARAM_NAME_DATA + " must be valid base64 encoded json",
+                                JSON_NOT_PARSABLE, cause);
+                        err.setParameterName(PARAM_NAME_DATA);
+                        err.setValue(ctx.queryParams().get(PARAM_NAME_DATA));
+                        throw err;
                     }
                 }));
     }
@@ -115,8 +116,7 @@ public class UserTokenEndpoint implements Endpoint {
                             .put("refresh-token", refreshToken))
                     .subscribe(tokensJson -> {
                         ctx.response().putHeader("content-type", "application/json")
-                                // FIXME: remove prettyfying
-                                .end(tokensJson.encodePrettily());
+                                .end(tokensJson.encode());
                     }, err -> {
                         ctx.response().setStatusCode(INTERNAL_SERVER_ERROR.code())
                                 .end(INTERNAL_SERVER_ERROR.reasonPhrase());

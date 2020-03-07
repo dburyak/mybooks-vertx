@@ -2,7 +2,7 @@ package dburyak.demo.mybooks.auth.app;
 
 import dburyak.demo.mybooks.MicronautVerticle;
 import dburyak.demo.mybooks.MicronautVerticleProducer;
-import dburyak.demo.mybooks.auth.app.endpoints.UserTokenEndpoint;
+import dburyak.demo.mybooks.auth.app.endpoints.GetUserTokenEndpoint;
 import dburyak.demo.mybooks.web.AuthenticatedMicroserviceHttpServerVerticle;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jwt.JWTOptions;
@@ -22,7 +22,7 @@ public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerti
     private static final Logger log = LoggerFactory.getLogger(HttpServerVerticle.class);
 
     @Inject
-    private UserTokenEndpoint userTokenEndpoint;
+    private GetUserTokenEndpoint getUserTokenEndpoint;
 
     @Inject
     private JWTAuth jwtAuth;
@@ -32,7 +32,7 @@ public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerti
 
     @Override
     protected void doBuildProtectedEndpoints(Router router) {
-        userTokenEndpoint.registerEndpoint(router);
+        getUserTokenEndpoint.registerEndpoint(router);
     }
 
     public static class Producer extends MicronautVerticleProducer<Producer> {

@@ -14,3 +14,6 @@ jwt:
   service-token:
     expires-in-seconds: 60
 
+http:
+  port: 8097
+

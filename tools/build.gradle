@@ -21,4 +21,5 @@ dependencies {
     // other
     api "org.slf4j:slf4j-api:${slf4jApiVersion}"
     api "com.esotericsoftware:kryo:${kryoVersion}"
+    api "com.github.ben-manes.caffeine:caffeine:${caffeineCacheVersion}"
 }

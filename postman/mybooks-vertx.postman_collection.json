@@ -6,41 +6,11 @@
 	},
 	"item": [
 		{
-			"name": "auth: get user-token",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwZXJtaXNzaW9ucyI6WyI6dXNlci10b2tlbjpnZW5lcmF0ZSJdLCJpYXQiOjE1ODM2MTk5OTIsImV4cCI6MTU4MzYyMDU5MiwiaXNzIjoibXlib29rcy5zZXJ2aWNlLnVzZXIifQ.y7N91U_c1I5Hsm7OogaxmlxXn3HpLeOpOYdo_RCghwc",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base-url}}/user-token?claims=eyJrMSI6InYxIiwiazIiOiJ2MiJ9",
-					"host": [
-						"{{base-url}}"
-					],
-					"path": [
-						"user-token"
-					],
-					"query": [
-						{
-							"key": "claims",
-							"value": "eyJrMSI6InYxIiwiazIiOiJ2MiJ9",
-							"description": "Base64 encoded user-token json claims"
-						}
-					]
-				}
-			},
-			"response": [
+			"name": "auth",
+			"item": [
 				{
-					"name": "auth: get user-token - SUCCESS",
-					"originalRequest": {
+					"name": "get user-token",
+					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -60,23 +30,130 @@
 							]
 						}
 					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
+					"response": [
 						{
-							"key": "content-type",
-							"value": "application/json"
-						},
-						{
-							"key": "content-length",
-							"value": "390"
+							"name": "get user-token : SUCCESS",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/user-token?claims=eyJrMSI6InYxIiwiazIiOiJ2MiJ9",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"user-token"
+									],
+									"query": [
+										{
+											"key": "claims",
+											"value": "eyJrMSI6InYxIiwiazIiOiJ2MiJ9",
+											"description": "Base64 encoded user-token json claims"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "content-length",
+									"value": "523"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"access_token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJrMSI6InYxIiwiazIiOiJ2MiIsImlhdCI6MTU4MzY2NzQwMiwiZXhwIjoxNTgzNjY3NzAyLCJpc3MiOiJteWJvb2tzLnNlcnZpY2UuYXV0aCJ9.Gp2xF9dnnoAhstkBnb_Jc8QUjZ2tZI1jxa93hJx8NHw\",\n    \"refresh_token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJrMSI6InYxIiwiazIiOiJ2MiIsImp0aSI6IjcwM2IxNDAwLThhZDUtNDNjOS05ZTEzLTFiNGZjN2M5NDJkYyIsImlhdCI6MTU4MzY2NzQwMiwiZXhwIjoxNTg0MzU4NjAyLCJhdWQiOiJteWJvb2tzLnNlcnZpY2UuYXV0aCIsImlzcyI6Im15Ym9va3Muc2VydmljZS5hdXRoIn0.bTBIyg8uo1AWN6Cq_H_Li4gD5rgL4rIfe58C-SJK4xs\"\n}"
 						}
-					],
-					"cookie": [],
-					"body": "{\n    \"access-token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJrMSI6InYxIiwiazIiOiJ2MiIsImlhdCI6MTU4MzYyMDAyMywiZXhwIjoxNTgzNjIwMzIzLCJpc3MiOiJteWJvb2tzIn0.D_PBeeCMFPZR2wNI0uiBjAu4CWUB-O3muDF-jAHHOKU\",\n    \"refresh-token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJrMSI6InYxIiwiazIiOiJ2MiIsImlhdCI6MTU4MzYyMDAyMywiZXhwIjoxNTg0MzExMjIzLCJpc3MiOiJteWJvb2tzIn0.sw1pMnNOyBtzvDbfhlJ2_KEWgNhrajdIzccmxxS_mUk\"\n}"
+					]
+				},
+				{
+					"name": "refresh user-token",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base-url}}/user-token",
+							"host": [
+								"{{base-url}}"
+							],
+							"path": [
+								"user-token"
+							]
+						}
+					},
+					"response": []
 				}
-			]
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwZXJtaXNzaW9ucyI6WyI6dXNlci10b2tlbjpnZW5lcmF0ZSJdLCJpYXQiOjE1ODM2NjY5MTAsImV4cCI6MTg5OTAyNjkxMCwiaXNzIjoibXlib29rcy5zZXJ2aWNlLnVzZXIifQ.nl2IO-bDa-o3ajw-J66bRWU6NaQeKgn42yUpVN-Pv2k",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "c82b0dc7-ea9c-447d-8376-157ab25b1675",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "e6397f11-3f1a-4d18-946c-f9b1c748ca62",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwZXJtaXNzaW9ucyI6WyI6dXNlci10b2tlbjpnZW5lcmF0ZSJdLCJpYXQiOjE1ODM2NjY5MTAsImV4cCI6MTg5OTAyNjkxMCwiaXNzIjoibXlib29rcy5zZXJ2aWNlLnVzZXIifQ.nl2IO-bDa-o3ajw-J66bRWU6NaQeKgn42yUpVN-Pv2k",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "16ce8657-3ed4-4d60-a132-5de515c7dcc1",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "63405642-3dbb-4286-a85d-3b15263f6080",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		}
 	],
 	"protocolProfileBehavior": {}

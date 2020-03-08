@@ -9,14 +9,14 @@ Configuration:
             %date{yyyy-MM-dd HH:mm:ss.SSS}\
             }{white} \
             \
-            %highlight{%-5level} \
+            %highlight{%-5level}{FATAL=Blinking bright red, ERROR=Red, WARN=Yellow, INFO=Cyan, DEBUG=White, TRACE=Black} \
             \
             [%style{\
             %17.17thread\
             }{yellow}] \
             \
             %style{\
-            %40.40logger{3.3}\
+            %40.40logger\
             }{cyan} - \
             \
             %msg%n%throwable\
@@ -34,4 +34,6 @@ Configuration:
       - name: io.vertx
         level: info
       - name: io.micronaut
+        level: info
+      - name: org.mongodb.driver
         level: info

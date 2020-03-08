@@ -1,5 +1,5 @@
 jwt:
-  issuer: "mybooks"
+  issuer: "mybooks.service.auth"
   algorithm: "HS256"
   is-symmetric: true
 
@@ -14,5 +14,22 @@ jwt:
   service-token:
     expires-in-seconds: 60
 
+service:
+  user:
+    jwt:
+      issuer: "mybooks.service.user"
+
 http:
   port: 8097
+
+db:
+  mongo:
+    db-name: "mybooksAuthDb"
+    host: "localhost"
+    port: 27017
+    min-pool-size: 5
+    max-pool-size: 20
+    max-idle-time-ms: 30_000
+    cache:
+      cache-1Lvl-enabled: false
+      cache-2Lvl-enabled: false

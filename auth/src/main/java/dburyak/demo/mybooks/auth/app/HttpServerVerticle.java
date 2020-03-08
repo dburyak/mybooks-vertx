@@ -2,7 +2,9 @@ package dburyak.demo.mybooks.auth.app;
 
 import dburyak.demo.mybooks.MicronautVerticle;
 import dburyak.demo.mybooks.MicronautVerticleProducer;
-import dburyak.demo.mybooks.auth.app.endpoints.GetUserTokenEndpoint;
+import dburyak.demo.mybooks.auth.endpoints.GetUserTokenEndpoint;
+import dburyak.demo.mybooks.auth.endpoints.RefreshUserTokenEndpoint;
+import dburyak.demo.mybooks.auth.service.Permissions;
 import dburyak.demo.mybooks.web.AuthenticatedMicroserviceHttpServerVerticle;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jwt.JWTOptions;
@@ -25,6 +27,9 @@ public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerti
     private GetUserTokenEndpoint getUserTokenEndpoint;
 
     @Inject
+    private RefreshUserTokenEndpoint refreshUserTokenEndpoint;
+
+    @Inject
     private JWTAuth jwtAuth;
 
     @Inject
@@ -32,7 +37,8 @@ public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerti
 
     @Override
     protected void doBuildProtectedEndpoints(Router router) {
-        getUserTokenEndpoint.registerEndpoint(router);
+        getUserTokenEndpoint.registerEndpoint(router, null);
+        refreshUserTokenEndpoint.registerEndpoint(router, null);
     }
 
     public static class Producer extends MicronautVerticleProducer<Producer> {
@@ -48,8 +54,8 @@ public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerti
     private void init() {
         var sampleToken = jwtAuth.generateToken(new JsonObject(), new JWTOptions()
                 .setIssuer("mybooks.service.user")
-                .setExpiresInMinutes(10)
-                .setPermissions(List.of(":user-token:generate"))
+                .setExpiresInMinutes(10 * 365 * 24 * 60)
+                .setPermissions(List.of(Permissions.USER_TOKEN_GENERATE.toString()))
         );
         log.info("sample token: {}", sampleToken);
         jwtAuth.authenticate(new JsonObject().put("jwt", sampleToken), ar -> {

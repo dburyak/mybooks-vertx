@@ -6,6 +6,10 @@ import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.reactivex.ext.web.Route;
 import io.vertx.reactivex.ext.web.Router;
 import io.vertx.reactivex.ext.web.RoutingContext;
+import io.vertx.reactivex.ext.web.handler.BodyHandler;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * Defines API endpoint.
@@ -18,6 +22,7 @@ import io.vertx.reactivex.ext.web.RoutingContext;
  *     <li>"reqHandler" - handler to perform the main action of this endpoint</li>
  * </ul>
  */
+@Singleton
 public interface Endpoint {
 
     /**
@@ -42,6 +47,15 @@ public interface Endpoint {
      * @return http method
      */
     HttpMethod getHttpMethod();
+
+    /**
+     * Defines whether endpoint needs to handle request body.
+     *
+     * @return whether request body is processed by this endpoint
+     */
+    default boolean hasReqBody() {
+        return false;
+    }
 
     /**
      * Called to configure the route.
@@ -87,7 +101,8 @@ public interface Endpoint {
      *
      * @param router web api router
      */
-    default void registerEndpoint(Router router) {
+    @Inject
+    default void registerEndpoint(Router router, BodyHandler bodyHandler) {
         var reqHandler = reqHandler();
         if (reqHandler == null) {
             return;
@@ -104,6 +119,9 @@ public interface Endpoint {
             }
         }
         if (route != null) {
+            if (hasReqBody()) {
+                route.handler(bodyHandler);
+            }
             route = configureRoute(route);
             var accessHandler = reqAccessHandler();
             var validator = reqValidator();

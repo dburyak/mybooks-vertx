@@ -2,6 +2,7 @@ package dburyak.demo.mybooks.auth.app;
 
 import dburyak.demo.mybooks.MicronautVerticleProducer;
 import dburyak.demo.mybooks.MicronautVertxApplication;
+import dburyak.demo.mybooks.auth.service.ServiceTokenVerticle;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class App extends MicronautVertxApplication {
     @Override
     public List<MicronautVerticleProducer<?>> getVerticlesProducers() {
         return List.<MicronautVerticleProducer<?>>of(
+                new DbInitVerticle.Producer(),
                 new AboutVerticle.Producer(),
                 new HealthVerticle.Producer(),
                 new HttpServerVerticle.Producer(),

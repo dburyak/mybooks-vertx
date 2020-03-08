@@ -1,16 +1,13 @@
-package dburyak.demo.mybooks.auth.app.endpoints;
+package dburyak.demo.mybooks.auth.endpoints;
 
+import dburyak.demo.mybooks.auth.service.UserTokenService;
 import dburyak.demo.mybooks.web.Endpoint;
-import io.micronaut.context.annotation.Property;
 import io.reactivex.Single;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.jwt.JWTOptions;
 import io.vertx.ext.web.api.validation.ValidationException;
-import io.vertx.reactivex.ext.auth.User;
-import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
 import io.vertx.reactivex.ext.web.Route;
 import io.vertx.reactivex.ext.web.RoutingContext;
 import io.vertx.reactivex.ext.web.api.validation.CustomValidator;
@@ -19,8 +16,6 @@ import io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Base64;
-import java.util.List;
-import java.util.UUID;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
@@ -32,20 +27,11 @@ import static io.vertx.ext.web.api.validation.ValidationException.ErrorType.JSON
 public class GetUserTokenEndpoint implements Endpoint {
     public static final String PARAM_NAME_DATA = "claims";
 
-    @Property(name = "jwt.issuer")
-    private String jwtIssuer;
-
-    @Property(name = "jwt.user-token.access.expires-in-minutes")
-    private int jwtUserAccessExpMin;
-
-    @Property(name = "jwt.user-token.refresh.expires-in-minutes")
-    private int jwtUserRefreshExpMin;
-
-    @Inject
-    private JWTAuth jwtAuth;
-
     @Inject
     private Base64.Decoder base64Decoder;
+
+    @Inject
+    private UserTokenService userTokenService;
 
     @Override
     public String getPath() {
@@ -68,8 +54,8 @@ public class GetUserTokenEndpoint implements Endpoint {
             var user = ctx.user();
             var principal = user.principal();
             Single
-                    .zip(Single.just(isRequestFromAllowedService(principal)),
-                            hasPermissionToGenerateToken(user),
+                    .zip(Single.just(userTokenService.isRequestFromAllowedService(principal)),
+                            userTokenService.hasPermissionToGenerateToken(user),
                             (allowedService, canGenerate) -> allowedService && canGenerate)
                     .subscribe(canAccess -> {
                         if (!canAccess) {
@@ -93,7 +79,7 @@ public class GetUserTokenEndpoint implements Endpoint {
                     try {
                         var dataBase64 = ctx.queryParams().get(PARAM_NAME_DATA);
                         var jsonStr = new String(base64Decoder.decode(dataBase64));
-                        ctx.put("claimsJson", Json.decodeValue(jsonStr));
+                        ctx.put("userClaimsJson", Json.decodeValue(jsonStr));
                     } catch (Exception cause) {
                         var err = new ValidationException(PARAM_NAME_DATA + " must be valid base64 encoded json",
                                 JSON_NOT_PARSABLE, cause);
@@ -107,18 +93,13 @@ public class GetUserTokenEndpoint implements Endpoint {
     @Override
     public Handler<RoutingContext> reqHandler() {
         return (RoutingContext ctx) -> {
-            var userClaimsJson = ctx.<JsonObject>get("claimsJson");
+            var userClaimsJson = ctx.<JsonObject>get("userClaimsJson");
             Single.zip(
-                    Single.fromCallable(() -> jwtAuth.generateToken(userClaimsJson, buildBaseUserJwtOptions()
-                            .setExpiresInMinutes(jwtUserAccessExpMin))),
-                    Single.fromCallable(() -> jwtAuth.generateToken(userClaimsJson
-                                    .put("jti", UUID.randomUUID().toString()),
-                            buildBaseUserJwtOptions()
-                                    .setAudience(List.of(jwtIssuer))
-                                    .setExpiresInMinutes(jwtUserRefreshExpMin))),
+                    Single.fromCallable(() -> userTokenService.generateAccessToken(userClaimsJson)),
+                    Single.fromCallable(() -> userTokenService.generateRefreshToken(userClaimsJson)),
                     (accessToken, refreshToken) -> new JsonObject()
-                            .put("access-token", accessToken)
-                            .put("refresh-token", refreshToken))
+                            .put("access_token", accessToken)
+                            .put("refresh_token", refreshToken))
                     .subscribe(tokensJson -> {
                         ctx.response().putHeader("content-type", "application/json")
                                 .end(tokensJson.encode());
@@ -127,19 +108,5 @@ public class GetUserTokenEndpoint implements Endpoint {
                                 .end(INTERNAL_SERVER_ERROR.reasonPhrase());
                     });
         };
-    }
-
-    private boolean isRequestFromAllowedService(JsonObject principal) {
-        // only "user" service can request user-token generation
-        var iss = principal.getString("iss");
-        return iss != null && iss.startsWith("mybooks.service.user");
-    }
-
-    private Single<Boolean> hasPermissionToGenerateToken(User user) {
-        return user.rxIsAuthorized(":user-token:generate");
-    }
-
-    private JWTOptions buildBaseUserJwtOptions() {
-        return new JWTOptions().setIssuer(jwtIssuer);
     }
 }

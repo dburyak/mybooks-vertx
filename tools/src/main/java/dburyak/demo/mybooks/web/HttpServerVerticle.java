@@ -5,6 +5,7 @@ import io.micronaut.context.ApplicationContext;
 import io.micronaut.context.annotation.Value;
 import io.reactivex.Completable;
 import io.reactivex.Single;
+import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.reactivex.core.http.HttpServer;
 import io.vertx.reactivex.ext.web.Router;
 import org.slf4j.Logger;
@@ -17,6 +18,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
 import java.util.Set;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
+import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 @Singleton
 public abstract class HttpServerVerticle extends MicronautVerticle {
@@ -60,8 +65,23 @@ public abstract class HttpServerVerticle extends MicronautVerticle {
             router.route().failureHandler(ctx -> {
                 var resp = ctx.response();
                 var err = ctx.failure();
+                var isMainStatusSet = ctx.statusCode() >= 0;
+                var isRespStatusSet = resp.getStatusCode() != OK.code();
+                var isRespCodeExplicitlySet = isMainStatusSet || isRespStatusSet;
+                if (!isRespCodeExplicitlySet) {
+                    if (err instanceof ValidationException) {
+                        resp.setStatusCode(BAD_REQUEST.code())
+                                .setStatusMessage(BAD_REQUEST.reasonPhrase());
+                    } else {
+                        resp.setStatusCode(INTERNAL_SERVER_ERROR.code())
+                                .setStatusMessage(INTERNAL_SERVER_ERROR.reasonPhrase());
+                    }
+                } else {
+                    if (isMainStatusSet && !isRespStatusSet) {
+                        resp.setStatusCode(ctx.statusCode());
+                    }
+                }
                 resp.setChunked(true);
-                resp.write("err type: " + err.getClass().getCanonicalName() + "\n");
                 var stackTraceStr = new StringWriter();
                 err.printStackTrace(new PrintWriter(stackTraceStr));
                 resp.write(stackTraceStr.toString() + "\n");

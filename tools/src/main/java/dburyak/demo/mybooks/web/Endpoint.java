@@ -11,6 +11,8 @@ import io.vertx.reactivex.ext.web.handler.BodyHandler;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
+
 /**
  * Defines API endpoint.
  * <p>Path has precedence over RegexPath. So in order to define RegexPath, implementation should explicitly return null
@@ -141,10 +143,13 @@ public interface Endpoint {
                             "param: " + validationErr.parameterName() + "\n" +
                             "value: " + validationErr.value() + "\n" +
                             "rule: " + validationErr.validationRule();
-                    ctx.response().end(errDescr);
-                } else {
-                    ctx.next();
+                    ctx.response()
+                            .setChunked(true)
+                            .setStatusCode(BAD_REQUEST.code())
+                            .setStatusMessage(BAD_REQUEST.reasonPhrase())
+                            .write(errDescr);
                 }
+                ctx.next();
             });
         }
     }

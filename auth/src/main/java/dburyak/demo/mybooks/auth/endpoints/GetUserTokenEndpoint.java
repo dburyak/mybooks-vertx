@@ -61,8 +61,7 @@ public class GetUserTokenEndpoint implements Endpoint {
         return (RoutingContext ctx) -> userTokenService.hasPermissionToGenerateToken(ctx.user())
                 .subscribe(canAccess -> {
                     if (!canAccess) {
-                        ctx.response().setStatusCode(FORBIDDEN.code())
-                                .end(FORBIDDEN.reasonPhrase());
+                        ctx.fail(FORBIDDEN.code());
                     } else { // has access, handle request further
                         ctx.next();
                     }

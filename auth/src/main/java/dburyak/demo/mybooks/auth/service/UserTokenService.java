@@ -95,7 +95,8 @@ public class UserTokenService {
                     return refreshTokensRepository.findAndReplaceByJti(oldJti, newRefreshToken)
                             .switchIfEmpty(Single.error(new RefreshTokenNotRegisteredException(refreshToken)))
                             .doOnSuccess(t -> log.debug("token refreshed: userId={}, deviceId={}, jti={}",
-                                    t.getString(KEY_SUB), t.getString(KEY_DEVICE_ID), t.getString(KEY_JTI)))
+                                    newRefreshToken.getString(KEY_SUB), newRefreshToken.getString(KEY_DEVICE_ID),
+                                    newRefreshToken.getString(KEY_JTI)))
                             .map(ignr -> newRefreshTokenStr);
                 })
                 .map(newRefreshTokenStr -> new JsonObject()

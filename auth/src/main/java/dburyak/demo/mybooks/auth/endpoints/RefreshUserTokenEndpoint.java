@@ -1,5 +1,6 @@
 package dburyak.demo.mybooks.auth.endpoints;
 
+import dburyak.demo.mybooks.auth.service.RefreshTokenNotRegisteredException;
 import dburyak.demo.mybooks.auth.service.UserTokenService;
 import dburyak.demo.mybooks.web.Endpoint;
 import io.micronaut.context.ApplicationContext;
@@ -13,6 +14,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 import static io.vertx.core.http.HttpMethod.PUT;
 import static io.vertx.ext.web.api.validation.ValidationException.ErrorType.JSON_INVALID;
 
@@ -68,7 +70,11 @@ public class RefreshUserTokenEndpoint implements Endpoint {
                         ctx.response().putHeader("content-type", "application/json")
                                 .end(newTokensJson.encode());
                     }, err -> {
-                        ctx.fail(err);
+                        if (err instanceof RefreshTokenNotRegisteredException) {
+                            ctx.fail(FORBIDDEN.code(), err);
+                        } else {
+                            ctx.fail(err);
+                        }
                     });
         };
     }

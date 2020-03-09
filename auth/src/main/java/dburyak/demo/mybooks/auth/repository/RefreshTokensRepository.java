@@ -45,7 +45,7 @@ public class RefreshTokensRepository {
     }
 
     public Maybe<JsonObject> findAndReplaceByJti(String oldJti, JsonObject newRefreshToken) {
-        var q = new JsonObject().put(KEY_JTI, newRefreshToken.getString(KEY_JTI));
+        var q = new JsonObject().put(KEY_JTI, oldJti);
         return mongoClient.rxFindOneAndReplace(getCollectionName(), q, newRefreshToken);
     }
 

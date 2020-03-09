@@ -1,6 +1,6 @@
 package dburyak.demo.mybooks.auth;
 
-public class AuthenticationException extends Exception {
+public class AuthenticationException extends RuntimeException {
     public AuthenticationException() {
     }
 

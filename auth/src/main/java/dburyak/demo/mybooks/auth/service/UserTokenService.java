@@ -60,32 +60,38 @@ public class UserTokenService {
         validateUserClaims(userClaims);
         var sub = userClaims.getString(KEY_SUB);
         var deviceId = userClaims.getString(KEY_DEVICE_ID);
-        // before generating new access+refresh tokens pair we should invalidate previous refresh token if it exists
-        return refreshTokensRepository.deleteBySubAndDeviceId(sub, deviceId)
-                .map(isPreviousDeleted -> {
-                    if (isPreviousDeleted) {
-                        log.debug("previous refresh token was removed by new generate request: userId={}, deviceId={}",
-                                sub, deviceId);
-                    }
-                    return new JsonObject()
-                            .put("access_token", generateAccessToken(userClaims))
-                            .put("refresh_token", generateRefreshToken(userClaims));
+
+        return Single
+                .fromCallable(() -> new JsonObject()
+                        .put(KEY_ACCESS_TOKEN, generateAccessToken(userClaims))
+                        .put(KEY_REFRESH_TOKEN, generateRefreshToken(userClaims)))
+                .flatMap(newTokensJson -> {
+                    var newRefreshTokenStr = newTokensJson.getString(KEY_REFRESH_TOKEN);
+                    var newRefreshToken = jwt.decode(newRefreshTokenStr);
+                    // before generating new access+refresh tokens pair we should invalidate previous refresh token
+                    // if it exists
+                    return refreshTokensRepository.findAndReplaceUpsertBySubAndDeviceId(sub, deviceId, newRefreshToken)
+                            .map(ignr -> true)
+                            .toSingle(false)
+                            .doOnSuccess(isPreviousDeleted -> {
+                                if (isPreviousDeleted) {
+                                    log.debug("previous refresh token was removed by new generate tokens request: " +
+                                            "userId={}, deviceId={}", sub, deviceId);
+                                }
+                            })
+                            .map(ignr -> newTokensJson);
                 });
     }
 
     public Single<JsonObject> refreshTokens(JsonObject refreshToken) {
         var userClaims = refreshToken.copy();
-        userClaims.remove(KEY_JTI);
+        var oldJti = (String) userClaims.remove(KEY_JTI);
         userClaims.remove(KEY_IAT);
         userClaims.remove(KEY_EXP);
         return Single
-                .fromCallable(() -> {
-                    validateUserClaims(userClaims);
-                    return generateRefreshToken(userClaims);
-                })
+                .fromCallable(() -> generateRefreshToken(userClaims))
                 .flatMap(newRefreshTokenStr -> {
                     var newRefreshToken = jwt.decode(newRefreshTokenStr);
-                    var oldJti = refreshToken.getString(KEY_JTI);
                     return refreshTokensRepository.findAndReplaceByJti(oldJti, newRefreshToken)
                             .switchIfEmpty(Single.error(new RefreshTokenNotRegisteredException(refreshToken)))
                             .doOnSuccess(t -> log.debug("token refreshed: userId={}, deviceId={}, jti={}",
@@ -115,7 +121,7 @@ public class UserTokenService {
     private String generateRefreshToken(JsonObject userClaims) {
         validateUserClaims(userClaims);
         return jwtAuth.generateToken(userClaims
-                        .put(KEY_JTI, UUID.randomUUID()),
+                        .put(KEY_JTI, UUID.randomUUID().toString()),
                 buildBaseUserJwtOptions()
                         .setAudience(List.of(jwtIssuer))
                         .setExpiresInMinutes(jwtUserRefreshExpMin));

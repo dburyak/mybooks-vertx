@@ -7,6 +7,7 @@ import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClientDeleteResult;
+import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 
 import javax.inject.Inject;
@@ -63,6 +64,13 @@ public class RefreshTokensRepository {
     public Maybe<JsonObject> findAndDeleteBySubAndDeviceId(String sub, String deviceId) {
         var q = new JsonObject().put(KEY_SUB, sub).put(KEY_DEVICE_ID, deviceId);
         return mongoClient.rxFindOneAndDelete(getCollectionName(), q);
+    }
+
+    public Maybe<JsonObject> findAndReplaceUpsertBySubAndDeviceId(String sub, String deviceId, JsonObject newRefreshToken) {
+        var q = new JsonObject().put(KEY_SUB, sub).put(KEY_DEVICE_ID, deviceId);
+        return mongoClient.rxFindOneAndReplaceWithOptions(getCollectionName(), q, newRefreshToken,
+                new FindOptions(),
+                new UpdateOptions().setUpsert(true));
     }
 
     public Single<Boolean> existsWithSub(String sub) {

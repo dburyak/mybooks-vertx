@@ -12,10 +12,7 @@ import io.vertx.reactivex.ext.web.RoutingContext;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 import static io.vertx.core.http.HttpMethod.PUT;
 import static io.vertx.ext.web.api.validation.ValidationException.ErrorType.JSON_INVALID;
 
@@ -62,7 +59,7 @@ public class RefreshUserTokenEndpoint implements Endpoint {
         };
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "Convert2MethodRef"})
     @Override
     public Handler<RoutingContext> reqHandler() {
         return (RoutingContext ctx) -> {
@@ -71,18 +68,7 @@ public class RefreshUserTokenEndpoint implements Endpoint {
                         ctx.response().putHeader("content-type", "application/json")
                                 .end(newTokensJson.encode());
                     }, err -> {
-                        var resp = ctx.response();
-                        resp.setStatusCode(INTERNAL_SERVER_ERROR.code());
-                        if (isErrReportEnabled) {
-                            resp.setChunked(true);
-                            resp.write("err type: " + err.getClass().getCanonicalName() + "\n");
-                            resp.write("err msg: " + err.getMessage() + "\n");
-                            resp.write(err.toString() + "\n");
-                            var stackTraceStr = new StringWriter();
-                            err.printStackTrace(new PrintWriter(stackTraceStr));
-                            resp.write(stackTraceStr.toString() + "\n");
-                        }
-                        resp.end(INTERNAL_SERVER_ERROR.reasonPhrase());
+                        ctx.fail(err);
                     });
         };
     }

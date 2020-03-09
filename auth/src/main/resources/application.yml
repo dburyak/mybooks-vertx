@@ -21,6 +21,9 @@ service:
 
 http:
   port: 8097
+  err-details-envs:
+    - test
+    - dev
 
 db:
   mongo:

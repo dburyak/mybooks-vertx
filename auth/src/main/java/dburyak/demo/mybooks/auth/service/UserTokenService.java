@@ -12,8 +12,10 @@ import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -50,6 +52,9 @@ public class UserTokenService {
 
     @Inject
     private RefreshTokensRepository refreshTokensRepository;
+
+    @Inject
+    private Base64.Encoder base64Encoder;
 
     public Single<JsonObject> generateTokens(JsonObject userClaims) {
         validateUserClaims(userClaims);
@@ -92,14 +97,13 @@ public class UserTokenService {
                         .put(KEY_REFRESH_TOKEN, newRefreshTokenStr));
     }
 
-    public boolean isRequestFromAllowedService(JsonObject principal) {
-        // only "user" service can request user-token generation
-        var iss = principal.getString(KEY_ISS);
-        return iss != null && iss.startsWith(userServiceJwtIssuer);
-    }
-
     public Single<Boolean> hasPermissionToGenerateToken(User user) {
-        return user.rxIsAuthorized(Permissions.USER_TOKEN_GENERATE.toString());
+        var principal = user.principal();
+        var iss = principal.getString(KEY_ISS);
+        var isRequestFromUserService = iss != null && iss.startsWith(userServiceJwtIssuer);
+        return isRequestFromUserService
+                ? user.rxIsAuthorized(Permissions.USER_TOKEN_GENERATE.toString())
+                : Single.just(false);
     }
 
     private String generateAccessToken(JsonObject userClaims) {
@@ -131,5 +135,29 @@ public class UserTokenService {
         if (userClaims.containsKey(KEY_JTI)) {
             throw new BadUserClaimsException("must NOT contain \"" + KEY_JTI + "\"", userClaims);
         }
+    }
+
+    // FIXME: delete this vvvv
+    @PostConstruct
+    private void init() {
+        var postmanUserServiceToken = jwtAuth.generateToken(new JsonObject()
+                        .put("description", "postman user service token"),
+                new JWTOptions()
+                        .setIssuer(userServiceJwtIssuer)
+                        .setSubject(userServiceJwtIssuer)
+                        .setExpiresInMinutes(100 * 365 * 24 * 60)
+                        .setPermissions(List.of(Permissions.USER_TOKEN_GENERATE.toString())));
+        log.info("postman user service token: {}", postmanUserServiceToken);
+        jwtAuth.authenticate(new JsonObject().put("jwt", postmanUserServiceToken), ar -> {
+            log.info("postman user service token data: \n{}", ar.result().principal().encodePrettily());
+        });
+
+        var sampleUserClaims = new JsonObject()
+                .put(UserTokenService.KEY_SUB, UUID.randomUUID().toString())
+                .put(UserTokenService.KEY_DEVICE_ID, UUID.randomUUID().toString())
+                .put("k1", "v1")
+                .put("k2", "v2").encode();
+        var encodedUserClaims = base64Encoder.encodeToString(sampleUserClaims.getBytes());
+        log.info("base64 encoded user claims: {}", encodedUserClaims);
     }
 }

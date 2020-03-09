@@ -2,7 +2,7 @@ package dburyak.demo.mybooks.auth.endpoints;
 
 import dburyak.demo.mybooks.auth.service.UserTokenService;
 import dburyak.demo.mybooks.web.Endpoint;
-import io.reactivex.Single;
+import io.micronaut.context.ApplicationContext;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
@@ -13,8 +13,11 @@ import io.vertx.reactivex.ext.web.RoutingContext;
 import io.vertx.reactivex.ext.web.api.validation.CustomValidator;
 import io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Base64;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
@@ -25,15 +28,20 @@ import static io.vertx.ext.web.api.validation.ValidationException.ErrorType.JSON
 
 @Singleton
 public class GetUserTokenEndpoint implements Endpoint {
+    public static final String PARAM_NAME_CLAIMS = "claims";
+
     private static final String CTX_KEY_USER_CLAIMS_JSON = "userClaimsJson";
 
-    public static final String PARAM_NAME_CLAIMS = "claims";
+    private boolean isErrReportEnabled;
 
     @Inject
     private Base64.Decoder base64Decoder;
 
     @Inject
     private UserTokenService userTokenService;
+
+    @Inject
+    private ApplicationContext appCtx;
 
     @Override
     public String getPath() {
@@ -50,27 +58,31 @@ public class GetUserTokenEndpoint implements Endpoint {
         return route.produces("application/json");
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public Handler<RoutingContext> reqAccessHandler() {
-        return (RoutingContext ctx) -> {
-            var user = ctx.user();
-            var principal = user.principal();
-            Single
-                    .zip(Single.just(userTokenService.isRequestFromAllowedService(principal)),
-                            userTokenService.hasPermissionToGenerateToken(user),
-                            (allowedService, canGenerate) -> allowedService && canGenerate)
-                    .subscribe(canAccess -> {
-                        if (!canAccess) {
-                            ctx.response().setStatusCode(FORBIDDEN.code())
-                                    .end(FORBIDDEN.reasonPhrase());
-                        } else { // has access, handle request further
-                            ctx.next();
-                        }
-                    }, err -> {
-                        ctx.response().setStatusCode(INTERNAL_SERVER_ERROR.code())
-                                .end(INTERNAL_SERVER_ERROR.reasonPhrase());
-                    });
-        };
+        return (RoutingContext ctx) -> userTokenService.hasPermissionToGenerateToken(ctx.user())
+                .subscribe(canAccess -> {
+                    if (!canAccess) {
+                        ctx.response().setStatusCode(FORBIDDEN.code())
+                                .end(FORBIDDEN.reasonPhrase());
+                    } else { // has access, handle request further
+                        ctx.next();
+                    }
+                }, err -> {
+                    var resp = ctx.response();
+                    resp.setStatusCode(INTERNAL_SERVER_ERROR.code());
+                    if (isErrReportEnabled) {
+                        resp.setChunked(true);
+                        resp.write("err type: " + err.getClass().getCanonicalName() + "\n");
+                        resp.write("err msg: " + err.getMessage() + "\n");
+                        resp.write(err.toString() + "\n");
+                        var stackTraceStr = new StringWriter();
+                        err.printStackTrace(new PrintWriter(stackTraceStr));
+                        resp.write(stackTraceStr.toString() + "\n");
+                    }
+                    resp.end(INTERNAL_SERVER_ERROR.reasonPhrase());
+                });
     }
 
     @Override
@@ -101,7 +113,7 @@ public class GetUserTokenEndpoint implements Endpoint {
                         throw err;
                     }
                     if (deviceId == null || deviceId.isBlank()) {
-                        var err = new ValidationException("\"deviceId\" must be specified in claims");
+                        var err = new ValidationException("\"device_id\" must be specified in claims");
                         err.setParameterName(PARAM_NAME_CLAIMS);
                         err.setValue(userClaims.toString());
                         throw err;
@@ -113,6 +125,7 @@ public class GetUserTokenEndpoint implements Endpoint {
                 }));
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public Handler<RoutingContext> reqHandler() {
         return (RoutingContext ctx) -> {
@@ -122,9 +135,28 @@ public class GetUserTokenEndpoint implements Endpoint {
                         ctx.response().putHeader("content-type", "application/json")
                                 .end(tokensJson.encode());
                     }, err -> {
-                        ctx.response().setStatusCode(INTERNAL_SERVER_ERROR.code())
-                                .end(INTERNAL_SERVER_ERROR.reasonPhrase());
+                        var resp = ctx.response();
+                        resp.setStatusCode(INTERNAL_SERVER_ERROR.code());
+                        if (isErrReportEnabled) {
+                            resp.setChunked(true);
+                            resp.write("err type: " + err.getClass().getCanonicalName() + "\n");
+                            resp.write("err msg: " + err.getMessage() + "\n");
+                            resp.write(err.toString() + "\n");
+                            var stackTraceStr = new StringWriter();
+                            err.printStackTrace(new PrintWriter(stackTraceStr));
+                            resp.write(stackTraceStr.toString() + "\n");
+                        }
+                        resp.end(INTERNAL_SERVER_ERROR.reasonPhrase());
                     });
         };
+    }
+
+    @PostConstruct
+    private void init() {
+        var envs = appCtx.getEnvironment().getActiveNames();
+        var isProd = envs.contains("prod");
+        var isDev = envs.contains("dev");
+        var isTest = envs.contains("test");
+        isErrReportEnabled = !isProd && (isDev || isTest);
     }
 }

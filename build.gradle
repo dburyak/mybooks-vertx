@@ -90,7 +90,21 @@ subprojects {
             applicationDefaultJvmArgs += [
                     '-Dlog4j2.contextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector',
                     '-Dlog4j2.asyncLoggerRingBufferSize=1048576', // 1024 * 1024
-                    '-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory'
+                    '-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory',
+                    '-Dmicronaut.environments=prod'
+            ]
+        }
+
+        tasks.run {
+            jvmArgs += '-Dmicronaut.environments=dev'
+        }
+
+        tasks.withType(Test) {
+            jvmArgs += [
+                    '-Dlog4j2.contextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector',
+                    '-Dlog4j2.asyncLoggerRingBufferSize=1048576', // 1024 * 1024
+                    '-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory',
+                    '-Dmicronaut.environments=test'
             ]
         }
     }

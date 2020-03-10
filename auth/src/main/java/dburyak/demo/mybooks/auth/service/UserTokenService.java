@@ -76,7 +76,7 @@ public class UserTokenService {
                             .toSingle(false)
                             .doOnSuccess(isPreviousDeleted -> {
                                 if (isPreviousDeleted) {
-                                    log.debug("previous refresh token was removed by new generate tokens request: " +
+                                    log.debug("previous refresh token was replaced by new generate tokens request: " +
                                             "userId={}, deviceId={}", sub, deviceId);
                                 }
                             })

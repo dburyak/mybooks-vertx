@@ -1,4 +1,4 @@
-package dburyak.demo.mybooks.auth.service;
+package dburyak.demo.mybooks.auth.app;
 
 import dburyak.demo.mybooks.MicronautVerticle;
 import dburyak.demo.mybooks.MicronautVerticleProducer;

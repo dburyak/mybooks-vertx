@@ -2,7 +2,6 @@ package dburyak.demo.mybooks.auth.app;
 
 import dburyak.demo.mybooks.MicronautVerticleProducer;
 import dburyak.demo.mybooks.MicronautVertxApplication;
-import dburyak.demo.mybooks.auth.service.ServiceTokenVerticle;
 
 import java.util.List;
 

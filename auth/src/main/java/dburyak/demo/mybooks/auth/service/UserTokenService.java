@@ -121,7 +121,7 @@ public class UserTokenService {
 
     private String generateRefreshToken(JsonObject userClaims) {
         validateUserClaims(userClaims);
-        return jwtAuth.generateToken(userClaims
+        return jwtAuth.generateToken(userClaims.copy()
                         .put(KEY_JTI, UUID.randomUUID().toString()),
                 buildBaseUserJwtOptions()
                         .setAudience(List.of(jwtIssuer))

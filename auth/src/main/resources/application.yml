@@ -30,7 +30,7 @@ db:
     db-name: "mybooksAuthDb"
     host: "localhost"
     port: 27017
-    min-pool-size: 5
+    min-pool-size: 1
     max-pool-size: 20
     max-idle-time-ms: 30_000
     cache:

@@ -6,6 +6,7 @@ import dburyak.demo.mybooks.auth.repository.RefreshTokensRepository;
 import io.reactivex.Completable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.IndexOptions;
+import io.vertx.reactivex.core.eventbus.EventBus;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,19 +17,38 @@ import javax.inject.Singleton;
 @Singleton
 public class DbInitVerticle extends MicronautVerticle {
     private static final Logger log = LoggerFactory.getLogger(DbInitVerticle.class);
+    private static final String EB_ADDR_IS_INITIALIZED = DbInitVerticle.class + ".isInitialized";
+
+    private boolean isInitialized = false;
 
     @Inject
     private MongoClient mongoClient;
+
+    @Inject
+    private EventBus eventBus;
+
+    public static String getIsInitializedAddr() {
+        return EB_ADDR_IS_INITIALIZED;
+    }
 
     @Override
     protected Completable doStart() {
         return Completable
                 .fromAction(() -> log.info("init database"))
+                .andThen(registerIsInitializedEbConsumer())
                 .andThen(createRefreshTokenCollection())
                 .andThen(createRefreshTokenJtiIndex())
                 .andThen(createRefreshTokensSubAndDeviceIdIndex())
-                .doOnComplete(() -> log.info("done database init"))
+                .doOnComplete(() -> {
+                    log.info("done database init");
+                    isInitialized = true;
+                })
                 .doOnError(err -> log.error("failed to init database", err));
+    }
+
+    private Completable registerIsInitializedEbConsumer() {
+        return Completable
+                .fromAction(() -> eventBus.consumer(getIsInitializedAddr(), msg -> msg.reply(isInitialized)));
     }
 
     private Completable createRefreshTokenCollection() {

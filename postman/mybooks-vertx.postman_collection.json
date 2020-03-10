@@ -14,7 +14,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base-url}}/user-token?claims=eyJrMSI6InYxIiwiazIiOiJ2MiJ9",
+							"raw": "{{base-url}}/user-token?claims=eyJzdWIiOiIyZTBjNzExMy0wZTk3LTQ5ZTYtODYzMS00YmE5NTcwMGY4MGQiLCJkZXZpY2VfaWQiOiI5MTQ1ZDA2MS1mZmE2LTQwYWUtYmY3MS1jMmE0ZGFlMzBiZjEiLCJrMSI6InYxIiwiazIiOiJ2MiJ9",
 							"host": [
 								"{{base-url}}"
 							],
@@ -24,7 +24,7 @@
 							"query": [
 								{
 									"key": "claims",
-									"value": "eyJrMSI6InYxIiwiazIiOiJ2MiJ9",
+									"value": "eyJzdWIiOiIyZTBjNzExMy0wZTk3LTQ5ZTYtODYzMS00YmE5NTcwMGY4MGQiLCJkZXZpY2VfaWQiOiI5MTQ1ZDA2MS1mZmE2LTQwYWUtYmY3MS1jMmE0ZGFlMzBiZjEiLCJrMSI6InYxIiwiazIiOiJ2MiJ9",
 									"description": "Base64 encoded user-token json claims"
 								}
 							]
@@ -32,12 +32,12 @@
 					},
 					"response": [
 						{
-							"name": "get user-token : SUCCESS",
+							"name": "get user-token : 400 - malformed claims (not base64 encoded json)",
 							"originalRequest": {
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{base-url}}/user-token?claims=eyJrMSI6InYxIiwiazIiOiJ2MiJ9",
+									"raw": "{{base-url}}/user-token?claims=eyJzdWIiOiIyZTBjNzExMy0wZTk3asdfS00YmE5NTcwMGY4MGQiLCJkZXZpY2VfaWQiOiI5MTQ1ZDA2MS1mZmE2LTQwYWUtYmY3MS1jMmE0ZGFlMzBiZjEiLCJrMSI6InYxIiwiazIiOiJ2MiJ9",
 									"host": [
 										"{{base-url}}"
 									],
@@ -47,7 +47,41 @@
 									"query": [
 										{
 											"key": "claims",
-											"value": "eyJrMSI6InYxIiwiazIiOiJ2MiJ9",
+											"value": "eyJzdWIiOiIyZTBjNzExMy0wZTk3asdfS00YmE5NTcwMGY4MGQiLCJkZXZpY2VfaWQiOiI5MTQ1ZDA2MS1mZmE2LTQwYWUtYmY3MS1jMmE0ZGFlMzBiZjEiLCJrMSI6InYxIiwiazIiOiJ2MiJ9",
+											"description": "Base64 encoded user-token json claims"
+										}
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								}
+							],
+							"cookie": [],
+							"body": "message: Value doesn't respect pattern ^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$\ntype: NO_MATCH\nparam: claims\nvalue: [eyJzdWIiOiIyZTBjNzExMy0wZTk3asdfS00YmE5NTcwMGY4MGQiLCJkZXZpY2VfaWQiOiI5MTQ1ZDA2MS1mZmE2LTQwYWUtYmY3MS1jMmE0ZGFlMzBiZjEiLCJrMSI6InYxIiwiazIiOiJ2MiJ9]\nrule: ParameterValidationRuleImpl{name='claims', validator=io.vertx.ext.web.api.validation.impl.StringTypeValidator@420540e2, location=QUERY, isOptional=false, allowEmptyValue=false}ValidationException{parameterName='claims', validationRule=ParameterValidationRuleImpl{name='claims', validator=io.vertx.ext.web.api.validation.impl.StringTypeValidator@420540e2, location=QUERY, isOptional=false, allowEmptyValue=false}, value='[eyJzdWIiOiIyZTBjNzExMy0wZTk3asdfS00YmE5NTcwMGY4MGQiLCJkZXZpY2VfaWQiOiI5MTQ1ZDA2MS1mZmE2LTQwYWUtYmY3MS1jMmE0ZGFlMzBiZjEiLCJrMSI6InYxIiwiazIiOiJ2MiJ9]', message='Value doesn't respect pattern ^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$', errorType=NO_MATCH}\n\tat io.vertx.ext.web.api.validation.ValidationException$ValidationExceptionFactory.generateNotMatchValidationException(ValidationException.java:193)\n\tat io.vertx.ext.web.api.validation.impl.StringTypeValidator.isValidSingleParam(StringTypeValidator.java:53)\n\tat io.vertx.ext.web.api.validation.impl.SingleValueParameterTypeValidator.isValid(SingleValueParameterTypeValidator.java:24)\n\tat io.vertx.ext.web.api.validation.impl.SingleValueParameterTypeValidator.isValidCollection(SingleValueParameterTypeValidator.java:36)\n\tat io.vertx.ext.web.api.validation.impl.ParameterValidationRuleImpl.callValidator(ParameterValidationRuleImpl.java:52)\n\tat io.vertx.ext.web.api.validation.impl.ParameterValidationRuleImpl.validateArrayParam(ParameterValidationRuleImpl.java:79)\n\tat io.vertx.ext.web.api.validation.impl.BaseValidationHandler.validateQueryParams(BaseValidationHandler.java:188)\n\tat io.vertx.ext.web.api.validation.impl.BaseValidationHandler.handle(BaseValidationHandler.java:59)\n\tat io.vertx.ext.web.api.validation.impl.BaseValidationHandler.handle(BaseValidationHandler.java:21)\n\tat io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler.handle(HTTPRequestValidationHandler.java:91)\n\tat io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler.handle(HTTPRequestValidationHandler.java:51)\n\tat io.vertx.reactivex.ext.web.Route$1.handle(Route.java:155)\n\tat io.vertx.reactivex.ext.web.Route$1.handle(Route.java:153)\n\tat io.vertx.ext.web.impl.RouteState.handleContext(RouteState.java:1034)\n\tat io.vertx.ext.web.impl.RoutingContextImplBase.iterateNext(RoutingContextImplBase.java:95)\n\tat io.vertx.ext.web.impl.RoutingContextImpl.next(RoutingContextImpl.java:130)\n\tat io.vertx.reactivex.ext.web.RoutingContext.next(RoutingContext.java:123)\n\tat dburyak.demo.mybooks.auth.endpoints.GetUserTokenEndpoint.lambda$reqAccessHandler$0(GetUserTokenEndpoint.java:59)\n\tat io.reactivex.internal.observers.ConsumerSingleObserver.onSuccess(ConsumerSingleObserver.java:62)\n\tat io.vertx.reactivex.impl.AsyncResultSingle.lambda$subscribeActual$0(AsyncResultSingle.java:49)\n\tat io.vertx.ext.auth.AbstractUser.lambda$isAuthorized$0(AbstractUser.java:55)\n\tat io.vertx.ext.auth.jwt.impl.JWTUser.doIsPermitted(JWTUser.java:91)\n\tat io.vertx.ext.auth.AbstractUser.isAuthorized(AbstractUser.java:49)\n\tat io.vertx.reactivex.ext.auth.User.isAuthorized(User.java:81)\n\tat io.vertx.reactivex.ext.auth.User.lambda$rxIsAuthorized$1(User.java:93)\n\tat io.vertx.reactivex.impl.AsyncResultSingle.subscribeActual(AsyncResultSingle.java:45)\n\tat io.reactivex.Single.subscribe(Single.java:3603)\n\tat io.reactivex.Single.subscribe(Single.java:3589)\n\tat dburyak.demo.mybooks.auth.endpoints.GetUserTokenEndpoint.lambda$reqAccessHandler$2(GetUserTokenEndpoint.java:55)\n\tat io.vertx.reactivex.ext.web.Route$1.handle(Route.java:155)\n\tat io.vertx.reactivex.ext.web.Route$1.handle(Route.java:153)\n\tat io.vertx.ext.web.impl.RouteState.handleContext(RouteState.java:1034)\n\tat io.vertx.ext.web.impl.RoutingContextImplBase.iterateNext(RoutingContextImplBase.java:131)\n\tat io.vertx.ext.web.impl.RoutingContextImpl.next(RoutingContextImpl.java:130)\n\tat io.vertx.ext.web.handler.impl.AuthHandlerImpl.lambda$authorizeUser$3(AuthHandlerImpl.java:223)\n\tat io.vertx.ext.web.handler.impl.AuthHandlerImpl.authorize(AuthHandlerImpl.java:107)\n\tat io.vertx.ext.web.handler.impl.AuthHandlerImpl.authorizeUser(AuthHandlerImpl.java:217)\n\tat io.vertx.ext.web.handler.impl.AuthHandlerImpl.lambda$null$1(AuthHandlerImpl.java:161)\n\tat io.vertx.ext.auth.jwt.impl.JWTAuthProviderImpl.authenticate(JWTAuthProviderImpl.java:150)\n\tat io.vertx.ext.web.handler.impl.AuthHandlerImpl.lambda$handle$2(AuthHandlerImpl.java:150)\n\tat io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl.lambda$parseCredentials$0(JWTAuthHandlerImpl.java:76)\n\tat io.vertx.ext.web.handler.impl.AuthorizationAuthHandler.parseAuthorization(AuthorizationAuthHandler.java:97)\n\tat io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl.parseCredentials(JWTAuthHandlerImpl.java:70)\n\tat io.vertx.ext.web.handler.impl.AuthHandlerImpl.handle(AuthHandlerImpl.java:129)\n\tat io.vertx.ext.web.handler.impl.AuthHandlerImpl.handle(AuthHandlerImpl.java:39)\n\tat io.vertx.reactivex.ext.web.handler.JWTAuthHandler.handle(JWTAuthHandler.java:78)\n\tat io.vertx.reactivex.ext.web.handler.JWTAuthHandler.handle(JWTAuthHandler.java:38)\n\tat io.vertx.reactivex.ext.web.Route$1.handle(Route.java:155)\n\tat io.vertx.reactivex.ext.web.Route$1.handle(Route.java:153)\n\tat io.vertx.ext.web.impl.RouteState.handleContext(RouteState.java:1034)\n\tat io.vertx.ext.web.impl.RoutingContextImplBase.iterateNext(RoutingContextImplBase.java:131)\n\tat io.vertx.ext.web.impl.RoutingContextImpl.next(RoutingContextImpl.java:130)\n\tat io.vertx.ext.web.impl.RouterImpl.handle(RouterImpl.java:54)\n\tat io.vertx.ext.web.impl.RouterImpl.handle(RouterImpl.java:36)\n\tat io.vertx.reactivex.ext.web.Router.handle(Router.java:79)\n\tat io.vertx.reactivex.ext.web.Router.handle(Router.java:39)\n\tat io.vertx.reactivex.core.http.HttpServer$1.handle(HttpServer.java:108)\n\tat io.vertx.reactivex.core.http.HttpServer$1.handle(HttpServer.java:106)\n\tat io.vertx.core.http.impl.WebSocketRequestHandler.handle(WebSocketRequestHandler.java:50)\n\tat io.vertx.core.http.impl.WebSocketRequestHandler.handle(WebSocketRequestHandler.java:32)\n\tat io.vertx.core.http.impl.Http1xServerConnection.handleMessage(Http1xServerConnection.java:136)\n\tat io.vertx.core.impl.ContextImpl.executeTask(ContextImpl.java:369)\n\tat io.vertx.core.impl.EventLoopContext.execute(EventLoopContext.java:43)\n\tat io.vertx.core.impl.ContextImpl.executeFromIO(ContextImpl.java:232)\n\tat io.vertx.core.net.impl.VertxHandler.channelRead(VertxHandler.java:173)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:374)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:360)\n\tat io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:352)\n\tat io.netty.channel.ChannelInboundHandlerAdapter.channelRead(ChannelInboundHandlerAdapter.java:93)\n\tat io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensionHandler.channelRead(WebSocketServerExtensionHandler.java:102)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:374)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:360)\n\tat io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:352)\n\tat io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ByteToMessageDecoder.java:328)\n\tat io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:302)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:374)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:360)\n\tat io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:352)\n\tat io.netty.channel.DefaultChannelPipeline$HeadContext.channelRead(DefaultChannelPipeline.java:1422)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:374)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:360)\n\tat io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:931)\n\tat io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:163)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:700)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:635)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:552)\n\tat io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:514)\n\tat io.netty.util.concurrent.SingleThreadEventExecutor$6.run(SingleThreadEventExecutor.java:1044)\n\tat io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)\n\tat io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)\n\tat java.base/java.lang.Thread.run(Thread.java:830)\n\nBad Request"
+						},
+						{
+							"name": "get user-token : 200 - tokens generated successfully",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/user-token?claims=eyJzdWIiOiIyZTBjNzExMy0wZTk3LTQ5ZTYtODYzMS00YmE5NTcwMGY4MGQiLCJkZXZpY2VfaWQiOiI5MTQ1ZDA2MS1mZmE2LTQwYWUtYmY3MS1jMmE0ZGFlMzBiZjEiLCJrMSI6InYxIiwiazIiOiJ2MiJ9",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"user-token"
+									],
+									"query": [
+										{
+											"key": "claims",
+											"value": "eyJzdWIiOiIyZTBjNzExMy0wZTk3LTQ5ZTYtODYzMS00YmE5NTcwMGY4MGQiLCJkZXZpY2VfaWQiOiI5MTQ1ZDA2MS1mZmE2LTQwYWUtYmY3MS1jMmE0ZGFlMzBiZjEiLCJrMSI6InYxIiwiazIiOiJ2MiJ9",
 											"description": "Base64 encoded user-token json claims"
 										}
 									]
@@ -63,30 +97,123 @@
 								},
 								{
 									"key": "content-length",
-									"value": "523"
+									"value": "395"
 								}
 							],
 							"cookie": [],
-							"body": "{\n    \"access_token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJrMSI6InYxIiwiazIiOiJ2MiIsImlhdCI6MTU4MzY2NzQwMiwiZXhwIjoxNTgzNjY3NzAyLCJpc3MiOiJteWJvb2tzLnNlcnZpY2UuYXV0aCJ9.Gp2xF9dnnoAhstkBnb_Jc8QUjZ2tZI1jxa93hJx8NHw\",\n    \"refresh_token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJrMSI6InYxIiwiazIiOiJ2MiIsImp0aSI6IjcwM2IxNDAwLThhZDUtNDNjOS05ZTEzLTFiNGZjN2M5NDJkYyIsImlhdCI6MTU4MzY2NzQwMiwiZXhwIjoxNTg0MzU4NjAyLCJhdWQiOiJteWJvb2tzLnNlcnZpY2UuYXV0aCIsImlzcyI6Im15Ym9va3Muc2VydmljZS5hdXRoIn0.bTBIyg8uo1AWN6Cq_H_Li4gD5rgL4rIfe58C-SJK4xs\"\n}"
+							"body": "{\n    \"access_token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyZTBjNzExMy0wZTk3LTQ5ZTYtODYzMS00YmE5NTcwMGY4MGQiLCJkZXZpY2VfaWQiOiI5MTQ1ZDA2MS1mZmE2LTQwYWUtYmY3MS1jMmE0ZGFlMzBiZjEiLCJrMSI6InYxIiwiazIiOiJ2MiIsImlhdCI6MTU4Mzg3NDYxOSwiZXhwIjoxNTgzODc0OTE5LCJpc3MiOiJteWJvb2tzLnNlcnZpY2UuYXV0aCJ9.wbBC82t1VWZHmHd7m8iWTj8KB9Z5Hu6vCMamTHevMxI\",\n    \"refresh_token\": \"f76bc298-aacb-4cca-ad9f-7426781eff37\"\n}"
 						}
 					]
 				},
 				{
 					"name": "refresh user-token",
 					"request": {
+						"auth": {
+							"type": "noauth"
+						},
 						"method": "PUT",
 						"header": [],
 						"url": {
-							"raw": "{{base-url}}/user-token",
+							"raw": "{{base-url}}/user-token/f0d671bd-79a1-450f-b664-c118eed88384",
 							"host": [
 								"{{base-url}}"
 							],
 							"path": [
-								"user-token"
+								"user-token",
+								"f0d671bd-79a1-450f-b664-c118eed88384"
 							]
 						}
 					},
-					"response": []
+					"response": [
+						{
+							"name": "refresh user-token : 404 - refresh token not registered",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/user-token/6ee3e98a-715d-4bde-9e1d-67c334d48b5d",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"user-token",
+										"6ee3e98a-715d-4bde-9e1d-67c334d48b5d"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								}
+							],
+							"cookie": [],
+							"body": "dburyak.demo.mybooks.auth.service.RefreshTokenNotRegisteredException: 6ee3e98a-715d-4bde-9e1d-67c334d48b5d\n\tat dburyak.demo.mybooks.auth.service.UserTokenService.refreshTokens(UserTokenService.java:90)\n\tat dburyak.demo.mybooks.auth.endpoints.RefreshUserTokenEndpoint.lambda$reqHandler$2(RefreshUserTokenEndpoint.java:51)\n\tat io.vertx.reactivex.ext.web.Route$1.handle(Route.java:155)\n\tat io.vertx.reactivex.ext.web.Route$1.handle(Route.java:153)\n\tat io.vertx.ext.web.impl.RouteState.handleContext(RouteState.java:1034)\n\tat io.vertx.ext.web.impl.RoutingContextImplBase.iterateNext(RoutingContextImplBase.java:95)\n\tat io.vertx.ext.web.impl.RoutingContextImpl.next(RoutingContextImpl.java:130)\n\tat io.vertx.ext.web.api.validation.impl.BaseValidationHandler.handle(BaseValidationHandler.java:95)\n\tat io.vertx.ext.web.api.validation.impl.BaseValidationHandler.handle(BaseValidationHandler.java:21)\n\tat io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler.handle(HTTPRequestValidationHandler.java:91)\n\tat io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler.handle(HTTPRequestValidationHandler.java:51)\n\tat io.vertx.reactivex.ext.web.Route$1.handle(Route.java:155)\n\tat io.vertx.reactivex.ext.web.Route$1.handle(Route.java:153)\n\tat io.vertx.ext.web.impl.RouteState.handleContext(RouteState.java:1034)\n\tat io.vertx.ext.web.impl.RoutingContextImplBase.iterateNext(RoutingContextImplBase.java:131)\n\tat io.vertx.ext.web.impl.RoutingContextImpl.next(RoutingContextImpl.java:130)\n\tat io.vertx.ext.web.impl.RouterImpl.handle(RouterImpl.java:54)\n\tat io.vertx.ext.web.impl.RouterImpl.handle(RouterImpl.java:36)\n\tat io.vertx.reactivex.ext.web.Router.handle(Router.java:79)\n\tat io.vertx.reactivex.ext.web.Router.handle(Router.java:39)\n\tat io.vertx.reactivex.core.http.HttpServer$1.handle(HttpServer.java:108)\n\tat io.vertx.reactivex.core.http.HttpServer$1.handle(HttpServer.java:106)\n\tat io.vertx.core.http.impl.WebSocketRequestHandler.handle(WebSocketRequestHandler.java:50)\n\tat io.vertx.core.http.impl.WebSocketRequestHandler.handle(WebSocketRequestHandler.java:32)\n\tat io.vertx.core.http.impl.Http1xServerConnection.handleMessage(Http1xServerConnection.java:136)\n\tat io.vertx.core.impl.ContextImpl.executeTask(ContextImpl.java:369)\n\tat io.vertx.core.impl.EventLoopContext.execute(EventLoopContext.java:43)\n\tat io.vertx.core.impl.ContextImpl.executeFromIO(ContextImpl.java:232)\n\tat io.vertx.core.net.impl.VertxHandler.channelRead(VertxHandler.java:173)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:374)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:360)\n\tat io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:352)\n\tat io.netty.channel.ChannelInboundHandlerAdapter.channelRead(ChannelInboundHandlerAdapter.java:93)\n\tat io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensionHandler.channelRead(WebSocketServerExtensionHandler.java:102)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:374)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:360)\n\tat io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:352)\n\tat io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ByteToMessageDecoder.java:328)\n\tat io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:302)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:374)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:360)\n\tat io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:352)\n\tat io.netty.channel.DefaultChannelPipeline$HeadContext.channelRead(DefaultChannelPipeline.java:1422)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:374)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:360)\n\tat io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:931)\n\tat io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:163)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:700)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:635)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:552)\n\tat io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:514)\n\tat io.netty.util.concurrent.SingleThreadEventExecutor$6.run(SingleThreadEventExecutor.java:1044)\n\tat io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)\n\tat io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)\n\tat java.base/java.lang.Thread.run(Thread.java:830)\n\nNot Found"
+						},
+						{
+							"name": "refresh user-token : 200 - token successfully refreshed",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/user-token/f0d671bd-79a1-450f-b664-c118eed88384",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"user-token",
+										"f0d671bd-79a1-450f-b664-c118eed88384"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "content-length",
+									"value": "490"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"access_token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJfaWQiOnsiJG9pZCI6IjVlNjZiZTFhNWNmNGY4YzUyNGNhMDQwZCJ9LCJzdWIiOiIyZTBjNzExMy0wZTk3LTQ5ZTYtODYzMS00YmE5NTcwMGY4MGQiLCJkZXZpY2VfaWQiOiI5MTQ1ZDA2MS1mZmE2LTQwYWUtYmY3MS1jMmE0ZGFlMzBiZjEiLCJrMSI6InYxIiwiazIiOiJ2MiIsImF1ZCI6Im15Ym9va3Muc2VydmljZS5hdXRoIiwiaXNzIjoibXlib29rcy5zZXJ2aWNlLmF1dGgiLCJpYXQiOjE1ODM4NzQ0ODUsImV4cCI6MTU4Mzg3NDc4NX0._GUXrbULrLI8iz858V0mLq4ZXIpLy5JtoZmRENto0x8\",\n    \"refresh_token\": \"fa2fc141-f655-4cb0-977b-968b912b12a1\"\n}"
+						},
+						{
+							"name": "refresh user-token : 400 - malformed refresh token UUID",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/user-token/f0d",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"user-token",
+										"f0d"
+									]
+								}
+							},
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "transfer-encoding",
+									"value": "chunked"
+								}
+							],
+							"cookie": [],
+							"body": "message: Value doesn't respect pattern ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$\ntype: NO_MATCH\nparam: refreshTokenId\nvalue: f0d\nrule: ParameterValidationRuleImpl{name='refreshTokenId', validator=io.vertx.ext.web.api.validation.impl.StringTypeValidator@5cb8c84a, location=PATH, isOptional=false, allowEmptyValue=false}ValidationException{parameterName='refreshTokenId', validationRule=ParameterValidationRuleImpl{name='refreshTokenId', validator=io.vertx.ext.web.api.validation.impl.StringTypeValidator@5cb8c84a, location=PATH, isOptional=false, allowEmptyValue=false}, value='f0d', message='Value doesn't respect pattern ^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$', errorType=NO_MATCH}\n\tat io.vertx.ext.web.api.validation.ValidationException$ValidationExceptionFactory.generateNotMatchValidationException(ValidationException.java:193)\n\tat io.vertx.ext.web.api.validation.impl.StringTypeValidator.isValidSingleParam(StringTypeValidator.java:53)\n\tat io.vertx.ext.web.api.validation.impl.SingleValueParameterTypeValidator.isValid(SingleValueParameterTypeValidator.java:24)\n\tat io.vertx.ext.web.api.validation.impl.ParameterValidationRuleImpl.callValidator(ParameterValidationRuleImpl.java:38)\n\tat io.vertx.ext.web.api.validation.impl.ParameterValidationRuleImpl.validateSingleParam(ParameterValidationRuleImpl.java:70)\n\tat io.vertx.ext.web.api.validation.impl.BaseValidationHandler.validatePathParams(BaseValidationHandler.java:110)\n\tat io.vertx.ext.web.api.validation.impl.BaseValidationHandler.handle(BaseValidationHandler.java:58)\n\tat io.vertx.ext.web.api.validation.impl.BaseValidationHandler.handle(BaseValidationHandler.java:21)\n\tat io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler.handle(HTTPRequestValidationHandler.java:91)\n\tat io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler.handle(HTTPRequestValidationHandler.java:51)\n\tat io.vertx.reactivex.ext.web.Route$1.handle(Route.java:155)\n\tat io.vertx.reactivex.ext.web.Route$1.handle(Route.java:153)\n\tat io.vertx.ext.web.impl.RouteState.handleContext(RouteState.java:1034)\n\tat io.vertx.ext.web.impl.RoutingContextImplBase.iterateNext(RoutingContextImplBase.java:131)\n\tat io.vertx.ext.web.impl.RoutingContextImpl.next(RoutingContextImpl.java:130)\n\tat io.vertx.ext.web.impl.RouterImpl.handle(RouterImpl.java:54)\n\tat io.vertx.ext.web.impl.RouterImpl.handle(RouterImpl.java:36)\n\tat io.vertx.reactivex.ext.web.Router.handle(Router.java:79)\n\tat io.vertx.reactivex.ext.web.Router.handle(Router.java:39)\n\tat io.vertx.reactivex.core.http.HttpServer$1.handle(HttpServer.java:108)\n\tat io.vertx.reactivex.core.http.HttpServer$1.handle(HttpServer.java:106)\n\tat io.vertx.core.http.impl.WebSocketRequestHandler.handle(WebSocketRequestHandler.java:50)\n\tat io.vertx.core.http.impl.WebSocketRequestHandler.handle(WebSocketRequestHandler.java:32)\n\tat io.vertx.core.http.impl.Http1xServerConnection.handleMessage(Http1xServerConnection.java:136)\n\tat io.vertx.core.impl.ContextImpl.executeTask(ContextImpl.java:369)\n\tat io.vertx.core.impl.EventLoopContext.execute(EventLoopContext.java:43)\n\tat io.vertx.core.impl.ContextImpl.executeFromIO(ContextImpl.java:232)\n\tat io.vertx.core.net.impl.VertxHandler.channelRead(VertxHandler.java:173)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:374)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:360)\n\tat io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:352)\n\tat io.netty.channel.ChannelInboundHandlerAdapter.channelRead(ChannelInboundHandlerAdapter.java:93)\n\tat io.netty.handler.codec.http.websocketx.extensions.WebSocketServerExtensionHandler.channelRead(WebSocketServerExtensionHandler.java:102)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:374)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:360)\n\tat io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:352)\n\tat io.netty.handler.codec.ByteToMessageDecoder.fireChannelRead(ByteToMessageDecoder.java:328)\n\tat io.netty.handler.codec.ByteToMessageDecoder.channelRead(ByteToMessageDecoder.java:302)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:374)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:360)\n\tat io.netty.channel.AbstractChannelHandlerContext.fireChannelRead(AbstractChannelHandlerContext.java:352)\n\tat io.netty.channel.DefaultChannelPipeline$HeadContext.channelRead(DefaultChannelPipeline.java:1422)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:374)\n\tat io.netty.channel.AbstractChannelHandlerContext.invokeChannelRead(AbstractChannelHandlerContext.java:360)\n\tat io.netty.channel.DefaultChannelPipeline.fireChannelRead(DefaultChannelPipeline.java:931)\n\tat io.netty.channel.nio.AbstractNioByteChannel$NioByteUnsafe.read(AbstractNioByteChannel.java:163)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKey(NioEventLoop.java:700)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKeysOptimized(NioEventLoop.java:635)\n\tat io.netty.channel.nio.NioEventLoop.processSelectedKeys(NioEventLoop.java:552)\n\tat io.netty.channel.nio.NioEventLoop.run(NioEventLoop.java:514)\n\tat io.netty.util.concurrent.SingleThreadEventExecutor$6.run(SingleThreadEventExecutor.java:1044)\n\tat io.netty.util.internal.ThreadExecutorMap$2.run(ThreadExecutorMap.java:74)\n\tat io.netty.util.concurrent.FastThreadLocalRunnable.run(FastThreadLocalRunnable.java:30)\n\tat java.base/java.lang.Thread.run(Thread.java:830)\n\nBad Request"
+						}
+					]
 				}
 			],
 			"auth": {
@@ -94,7 +221,7 @@
 				"bearer": [
 					{
 						"key": "token",
-						"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwZXJtaXNzaW9ucyI6WyI6dXNlci10b2tlbjpnZW5lcmF0ZSJdLCJpYXQiOjE1ODM2NjY5MTAsImV4cCI6MTg5OTAyNjkxMCwiaXNzIjoibXlib29rcy5zZXJ2aWNlLnVzZXIifQ.nl2IO-bDa-o3ajw-J66bRWU6NaQeKgn42yUpVN-Pv2k",
+						"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkZXNjcmlwdGlvbiI6InBvc3RtYW4gdXNlciBzZXJ2aWNlIHRva2VuIiwicGVybWlzc2lvbnMiOlsiOnVzZXItdG9rZW46Z2VuZXJhdGUiXSwiaWF0IjoxNTgzNzczODIwLCJpc3MiOiJteWJvb2tzLnNlcnZpY2UudXNlciIsInN1YiI6Im15Ym9va3Muc2VydmljZS51c2VyIn0.tj7OP1-MhQ0jLSMVf5ulyzw4MH8eN6ujfY6st3LIQXg",
 						"type": "string"
 					}
 				]

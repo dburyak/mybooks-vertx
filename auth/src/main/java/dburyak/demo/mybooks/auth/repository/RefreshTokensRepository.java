@@ -49,6 +49,10 @@ public class RefreshTokensRepository {
         return mongoClient.rxFindOneAndReplace(getCollectionName(), q, newRefreshToken);
     }
 
+    public Maybe<String> insert(JsonObject refreshToken) {
+        return mongoClient.rxInsert(getCollectionName(), refreshToken);
+    }
+
     public Single<Boolean> existsWithJti(String jti) {
         var q = new JsonObject().put(KEY_JTI, jti);
         return mongoClient.rxCount(getCollectionName(), q)

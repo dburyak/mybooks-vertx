@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Singleton
@@ -62,14 +63,14 @@ public class UserTokenService {
         var deviceId = userClaims.getString(KEY_DEVICE_ID);
 
         return Single
-                .fromCallable(() -> new JsonObject()
-                        .put(KEY_ACCESS_TOKEN, generateAccessToken(userClaims))
-                        .put(KEY_REFRESH_TOKEN, generateRefreshToken(userClaims)))
-                .flatMap(newTokensJson -> {
-                    var newRefreshTokenStr = newTokensJson.getString(KEY_REFRESH_TOKEN);
+                .fromCallable(() -> Map.of(
+                        KEY_ACCESS_TOKEN, generateAccessToken(userClaims),
+                        KEY_REFRESH_TOKEN, generateRefreshToken(userClaims)))
+                .flatMap(newTokens -> {
+                    var newRefreshTokenStr = newTokens.get(KEY_REFRESH_TOKEN);
                     var newRefreshToken = jwt.decode(newRefreshTokenStr);
-                    // before generating new access+refresh tokens pair we should invalidate previous refresh token
-                    // if it exists
+                    // before generating new access+refresh tokens pair we should
+                    // invalidate previous refresh token if it exists
                     return refreshTokensRepository.findAndReplaceUpsertBySubAndDeviceId(sub, deviceId, newRefreshToken)
                             .map(ignr -> true)
                             .toSingle(false)
@@ -79,29 +80,32 @@ public class UserTokenService {
                                             "userId={}, deviceId={}", sub, deviceId);
                                 }
                             })
-                            .map(ignr -> newTokensJson);
+                            .map(ignr -> new JsonObject()
+                                    .put(KEY_ACCESS_TOKEN, newTokens.get(KEY_ACCESS_TOKEN))
+                                    .put(KEY_REFRESH_TOKEN, newRefreshToken.getString(KEY_JTI)));
                 });
     }
 
-    public Single<JsonObject> refreshTokens(JsonObject refreshToken) {
-        var userClaims = refreshToken.copy();
-        var oldJti = (String) userClaims.remove(KEY_JTI);
-        userClaims.remove(KEY_IAT);
-        userClaims.remove(KEY_EXP);
-        return Single
-                .fromCallable(() -> generateRefreshToken(userClaims))
-                .flatMap(newRefreshTokenStr -> {
+    public Single<JsonObject> refreshTokens(String refreshTokenJti) {
+        return refreshTokensRepository.findAndDeleteByJti(refreshTokenJti)
+                .switchIfEmpty(Single.error(new RefreshTokenNotRegisteredException(refreshTokenJti)))
+                .flatMap(oldRefreshToken -> {
+                    var userClaims = oldRefreshToken.copy();
+                    userClaims.remove(KEY_JTI);
+                    userClaims.remove(KEY_IAT);
+                    userClaims.remove(KEY_EXP);
+                    var newRefreshTokenStr = generateRefreshToken(userClaims);
                     var newRefreshToken = jwt.decode(newRefreshTokenStr);
-                    return refreshTokensRepository.findAndReplaceByJti(oldJti, newRefreshToken)
-                            .switchIfEmpty(Single.error(new RefreshTokenNotRegisteredException(refreshToken)))
-                            .doOnSuccess(t -> log.debug("token refreshed: userId={}, deviceId={}, jti={}",
+                    return refreshTokensRepository.insert(newRefreshToken)
+                            .toSingle("ignored")
+                            .doOnSuccess(mongoObjId -> log.debug("token refreshed: userId={}, deviceId={}, jti={}",
                                     newRefreshToken.getString(KEY_SUB), newRefreshToken.getString(KEY_DEVICE_ID),
                                     newRefreshToken.getString(KEY_JTI)))
-                            .map(ignr -> newRefreshTokenStr);
+                            .map(ignr -> List.of(userClaims, newRefreshToken.getString(KEY_JTI)));
                 })
-                .map(newRefreshTokenStr -> new JsonObject()
-                        .put(KEY_ACCESS_TOKEN, generateAccessToken(userClaims))
-                        .put(KEY_REFRESH_TOKEN, newRefreshTokenStr));
+                .map(t2 -> new JsonObject()
+                        .put(KEY_ACCESS_TOKEN, generateAccessToken((JsonObject) t2.get(0)))
+                        .put(KEY_REFRESH_TOKEN, t2.get(1)));
     }
 
     public Single<Boolean> hasPermissionToGenerateToken(User user) {

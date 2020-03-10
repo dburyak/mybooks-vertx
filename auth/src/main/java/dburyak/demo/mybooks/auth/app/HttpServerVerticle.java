@@ -20,9 +20,13 @@ public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerti
     private RefreshUserTokenEndpoint refreshUserTokenEndpoint;
 
     @Override
+    protected void doBuildPublicEndpoints(Router router) {
+        refreshUserTokenEndpoint.registerEndpoint(router, null);
+    }
+
+    @Override
     protected void doBuildProtectedEndpoints(Router router) {
         getUserTokenEndpoint.registerEndpoint(router, null);
-        refreshUserTokenEndpoint.registerEndpoint(router, null);
     }
 
     public static class Producer extends MicronautVerticleProducer<Producer> {

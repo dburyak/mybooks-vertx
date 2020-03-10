@@ -3,34 +3,29 @@ package dburyak.demo.mybooks.auth.endpoints;
 import dburyak.demo.mybooks.auth.service.RefreshTokenNotRegisteredException;
 import dburyak.demo.mybooks.auth.service.UserTokenService;
 import dburyak.demo.mybooks.web.Endpoint;
-import io.micronaut.context.ApplicationContext;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.reactivex.ext.web.Route;
 import io.vertx.reactivex.ext.web.RoutingContext;
+import io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 import static io.vertx.core.http.HttpMethod.PUT;
-import static io.vertx.ext.web.api.validation.ValidationException.ErrorType.JSON_INVALID;
+import static io.vertx.ext.web.api.validation.ParameterType.UUID;
 
 @Singleton
 public class RefreshUserTokenEndpoint implements Endpoint {
-    private boolean isErrReportEnabled;
+    private static final String PATH_PARAM_REFRESH_TOKEN_ID = "refreshTokenId";
 
     @Inject
     private UserTokenService userTokenService;
 
-    @Inject
-    private ApplicationContext appCtx;
-
     @Override
     public String getPath() {
-        return "/user-token";
+        return "/user-token/:" + PATH_PARAM_REFRESH_TOKEN_ID;
     }
 
     @Override
@@ -45,46 +40,25 @@ public class RefreshUserTokenEndpoint implements Endpoint {
 
     @Override
     public Handler<RoutingContext> reqValidator() {
-        return (RoutingContext ctx) -> {
-            var user = ctx.user();
-            var principal = user.principal();
-            var jti = principal.getString(UserTokenService.KEY_JTI);
-            var sub = principal.getString(UserTokenService.KEY_SUB);
-            var deviceId = principal.getString(UserTokenService.KEY_DEVICE_ID);
-            if (jti == null || sub == null || deviceId == null || jti.isBlank() || sub.isBlank()
-                    || deviceId.isBlank()) {
-                var err = new ValidationException("bad refresh token", JSON_INVALID);
-                err.setParameterName("Authorization header");
-                throw err;
-            }
-            ctx.next();
-        };
+        return HTTPRequestValidationHandler.create()
+                .addPathParam(PATH_PARAM_REFRESH_TOKEN_ID, UUID);
     }
 
-    @SuppressWarnings({"ResultOfMethodCallIgnored", "Convert2MethodRef"})
+    @SuppressWarnings({"ResultOfMethodCallIgnored"})
     @Override
     public Handler<RoutingContext> reqHandler() {
         return (RoutingContext ctx) -> {
-            userTokenService.refreshTokens(ctx.user().principal())
+            userTokenService.refreshTokens(ctx.pathParam(PATH_PARAM_REFRESH_TOKEN_ID))
                     .subscribe(newTokensJson -> {
                         ctx.response().putHeader("content-type", "application/json")
                                 .end(newTokensJson.encode());
                     }, err -> {
                         if (err instanceof RefreshTokenNotRegisteredException) {
-                            ctx.fail(FORBIDDEN.code(), err);
+                            ctx.fail(NOT_FOUND.code(), err);
                         } else {
                             ctx.fail(err);
                         }
                     });
         };
-    }
-
-    @PostConstruct
-    private void init() {
-        var envs = appCtx.getEnvironment().getActiveNames();
-        var isProd = envs.contains("prod");
-        var isDev = envs.contains("dev");
-        var isTest = envs.contains("test");
-        isErrReportEnabled = !isProd && (isDev || isTest);
     }
 }

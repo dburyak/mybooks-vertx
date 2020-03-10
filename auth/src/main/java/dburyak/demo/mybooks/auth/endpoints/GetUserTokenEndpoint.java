@@ -2,7 +2,6 @@ package dburyak.demo.mybooks.auth.endpoints;
 
 import dburyak.demo.mybooks.auth.service.UserTokenService;
 import dburyak.demo.mybooks.web.Endpoint;
-import io.micronaut.context.ApplicationContext;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
@@ -13,7 +12,6 @@ import io.vertx.reactivex.ext.web.RoutingContext;
 import io.vertx.reactivex.ext.web.api.validation.CustomValidator;
 import io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Base64;
@@ -29,16 +27,11 @@ public class GetUserTokenEndpoint implements Endpoint {
 
     private static final String CTX_KEY_USER_CLAIMS_JSON = "userClaimsJson";
 
-    private boolean isErrReportEnabled;
-
     @Inject
     private Base64.Decoder base64Decoder;
 
     @Inject
     private UserTokenService userTokenService;
-
-    @Inject
-    private ApplicationContext appCtx;
 
     @Override
     public String getPath() {
@@ -123,14 +116,5 @@ public class GetUserTokenEndpoint implements Endpoint {
                         ctx.fail(err);
                     });
         };
-    }
-
-    @PostConstruct
-    private void init() {
-        var envs = appCtx.getEnvironment().getActiveNames();
-        var isProd = envs.contains("prod");
-        var isDev = envs.contains("dev");
-        var isTest = envs.contains("test");
-        isErrReportEnabled = !isProd && (isDev || isTest);
     }
 }

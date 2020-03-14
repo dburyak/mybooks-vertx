@@ -62,7 +62,7 @@ public class DbInitVerticle extends MicronautVerticle {
 
     private Completable createRefreshTokenJtiIndex() {
         var indexName = "refreshTokens_jti_index";
-        var indexOpts = new IndexOptions().name(indexName);
+        var indexOpts = new IndexOptions().name(indexName).unique(true);
         var indexKeys = new JsonObject()
                 .put("jti", 1);
         return createIndex(RefreshTokensRepository.getCollectionName(), indexName, indexKeys, indexOpts);
@@ -70,7 +70,7 @@ public class DbInitVerticle extends MicronautVerticle {
 
     private Completable createRefreshTokensSubAndDeviceIdIndex() {
         var indexName = "refreshTokens_sub_deviceId_index";
-        var indexOpts = new IndexOptions().name(indexName);
+        var indexOpts = new IndexOptions().name(indexName).unique(true);
         var indexKeys = new JsonObject()
                 .put("sub", 1)
                 .put("device_id", 1);

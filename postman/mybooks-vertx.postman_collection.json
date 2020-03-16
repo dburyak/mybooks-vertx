@@ -9,6 +9,246 @@
 			"name": "auth",
 			"item": [
 				{
+					"name": "about",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base-url}}/about",
+							"host": [
+								"{{base-url}}"
+							],
+							"path": [
+								"about"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "about : 200 - authorized request, full info",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/about",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"about"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "content-length",
+									"value": "160"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"version\": \"33078dd\",\n    \"revision\": \"33078dddc08628fec9a064204463b4f8f037f4eb\",\n    \"built_at\": \"2020-03-10T22:08:30.222366Z\",\n    \"server_time\": \"2020-03-10T22:09:03.368120Z\"\n}"
+						},
+						{
+							"name": "about : 200 - unauthorized request - brief info",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/about",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"about"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "content-length",
+									"value": "21"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"version\": \"33078dd\"\n}"
+						}
+					]
+				},
+				{
+					"name": "health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base-url}}/health",
+							"host": [
+								"{{base-url}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "health : 200 - unauthorized",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/health",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"health"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "text/plain"
+								},
+								{
+									"key": "content-length",
+									"value": "2"
+								}
+							],
+							"cookie": [],
+							"body": "OK"
+						},
+						{
+							"name": "health : 200 - authorized - detailed info",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/health",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"health"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "content-length",
+									"value": "28"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"checks\": [],\n    \"outcome\": \"UP\"\n}"
+						}
+					]
+				},
+				{
+					"name": "ready",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base-url}}/ready",
+							"host": [
+								"{{base-url}}"
+							],
+							"path": [
+								"ready"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "ready : 200 - unauthorized",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/ready",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"ready"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "plain",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "text/plain"
+								},
+								{
+									"key": "content-length",
+									"value": "2"
+								}
+							],
+							"cookie": [],
+							"body": "OK"
+						},
+						{
+							"name": "ready : 200 - authorized - detailed info",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base-url}}/ready",
+									"host": [
+										"{{base-url}}"
+									],
+									"path": [
+										"ready"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "content-length",
+									"value": "28"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"checks\": [],\n    \"outcome\": \"UP\"\n}"
+						}
+					]
+				},
+				{
 					"name": "get user-token",
 					"request": {
 						"method": "GET",

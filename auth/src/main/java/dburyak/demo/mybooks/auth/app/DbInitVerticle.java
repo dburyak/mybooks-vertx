@@ -57,7 +57,7 @@ public class DbInitVerticle extends MicronautVerticle {
                 .doOnSubscribe(ignr -> log.debug("creating collection: collectionName={}", collectionName))
                 .doOnComplete(() -> log.debug("collection created: collectionName={}", collectionName))
                 .doOnError(err -> log.debug("collection already exists: collectionName={}", collectionName))
-                .onErrorComplete(err -> true);
+                .onErrorComplete();
     }
 
     private Completable createRefreshTokenJtiIndex() {
@@ -65,7 +65,8 @@ public class DbInitVerticle extends MicronautVerticle {
         var indexOpts = new IndexOptions().name(indexName).unique(true);
         var indexKeys = new JsonObject()
                 .put("jti", 1);
-        return createIndex(RefreshTokensRepository.getCollectionName(), indexName, indexKeys, indexOpts);
+        return createIndex(RefreshTokensRepository.getCollectionName(), indexName, indexKeys, indexOpts)
+                .onErrorComplete();
     }
 
     private Completable createRefreshTokensSubAndDeviceIdIndex() {
@@ -74,7 +75,8 @@ public class DbInitVerticle extends MicronautVerticle {
         var indexKeys = new JsonObject()
                 .put("sub", 1)
                 .put("device_id", 1);
-        return createIndex(RefreshTokensRepository.getCollectionName(), indexName, indexKeys, indexOpts);
+        return createIndex(RefreshTokensRepository.getCollectionName(), indexName, indexKeys, indexOpts)
+                .onErrorComplete();
     }
 
     private Completable createIndex(String collectionName, String indexName, JsonObject indexKeys,

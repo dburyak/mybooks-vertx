@@ -1,4 +1,4 @@
-package dburyak.demo.mybooks.auth.repository;
+package dburyak.demo.mybooks.dal;
 
 import io.micronaut.context.annotation.Factory;
 import io.micronaut.context.annotation.Property;

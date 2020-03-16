@@ -1,5 +1,6 @@
 package dburyak.demo.mybooks.auth.repository;
 
+import dburyak.demo.mybooks.dal.MongoUtil;
 import io.micronaut.context.annotation.Property;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
@@ -30,32 +31,47 @@ public class RefreshTokensRepository {
     @Inject
     private MongoClient mongoClient;
 
+    @Inject
+    private MongoUtil mongoUtil;
+
     public static String getCollectionName() {
         return COLLECTION_NAME;
     }
 
     public Maybe<JsonObject> get(String id) {
-        var q = new JsonObject().put("_id", id);
-        return mongoClient.rxFindOne(getCollectionName(), q, null);
+        return Maybe
+                .fromCallable(() -> new JsonObject().put("_id", id))
+                .flatMap(q -> mongoClient.rxFindOne(getCollectionName(), q, null))
+                .map(this::fromDbFormat);
     }
 
     public Maybe<JsonObject> findAndDeleteByJti(String jti) {
-        var q = new JsonObject().put(KEY_JTI, jti);
-        return mongoClient.rxFindOneAndDelete(getCollectionName(), q);
+        return Maybe
+                .fromCallable(() -> mongoUtil.putUuid(jti, KEY_JTI, new JsonObject()))
+                .flatMap(q -> mongoClient.rxFindOneAndDelete(getCollectionName(), q))
+                .map(this::fromDbFormat);
     }
 
     public Maybe<JsonObject> findAndReplaceByJti(String oldJti, JsonObject newRefreshToken) {
-        var q = new JsonObject().put(KEY_JTI, oldJti);
-        return mongoClient.rxFindOneAndReplace(getCollectionName(), q, newRefreshToken);
+        return Single
+                .fromCallable(() -> toDbFormat(newRefreshToken))
+                .flatMapMaybe(newRefreshTokenDb -> {
+                    var q = mongoUtil.putUuid(oldJti, KEY_JTI, new JsonObject());
+                    return mongoClient.rxFindOneAndReplace(getCollectionName(), q, newRefreshTokenDb);
+                })
+                .map(this::fromDbFormat);
     }
 
     public Maybe<String> insert(JsonObject refreshToken) {
-        return mongoClient.rxInsert(getCollectionName(), refreshToken);
+        return Maybe
+                .fromCallable(() -> toDbFormat(refreshToken))
+                .flatMap(refreshTokenDb -> mongoClient.rxInsert(getCollectionName(), refreshTokenDb));
     }
 
     public Single<Boolean> existsWithJti(String jti) {
-        var q = new JsonObject().put(KEY_JTI, jti);
-        return mongoClient.rxCount(getCollectionName(), q)
+        return Single
+                .fromCallable(() -> mongoUtil.putUuid(jti, KEY_JTI, new JsonObject()))
+                .flatMap(q -> mongoClient.rxCount(getCollectionName(), q))
                 .map(num -> num > 0);
     }
 
@@ -66,26 +82,51 @@ public class RefreshTokensRepository {
     }
 
     public Maybe<JsonObject> findAndDeleteBySubAndDeviceId(String sub, String deviceId) {
-        var q = new JsonObject().put(KEY_SUB, sub).put(KEY_DEVICE_ID, deviceId);
-        return mongoClient.rxFindOneAndDelete(getCollectionName(), q);
+        return Maybe
+                .fromCallable(() -> {
+                    var q = new JsonObject();
+                    mongoUtil.putUuid(sub, KEY_SUB, q);
+                    mongoUtil.putUuid(deviceId, KEY_DEVICE_ID, q);
+                    return q;
+                })
+                .flatMap(q -> mongoClient.rxFindOneAndDelete(getCollectionName(), q))
+                .map(this::fromDbFormat);
     }
 
-    public Maybe<JsonObject> findAndReplaceUpsertBySubAndDeviceId(String sub, String deviceId, JsonObject newRefreshToken) {
-        var q = new JsonObject().put(KEY_SUB, sub).put(KEY_DEVICE_ID, deviceId);
-        return mongoClient.rxFindOneAndReplaceWithOptions(getCollectionName(), q, newRefreshToken,
-                new FindOptions(),
-                new UpdateOptions().setUpsert(true));
+    public Maybe<JsonObject> findAndReplaceUpsertBySubAndDeviceId(String sub, String deviceId,
+            JsonObject newRefreshToken) {
+        return Maybe
+                .fromCallable(() -> {
+                    var q = new JsonObject();
+                    mongoUtil.putUuid(sub, KEY_SUB, q);
+                    mongoUtil.putUuid(deviceId, KEY_DEVICE_ID, q);
+                    return q;
+                })
+                .flatMap(q -> {
+                    var newRefreshTokenDb = toDbFormat(newRefreshToken);
+                    return mongoClient.rxFindOneAndReplaceWithOptions(getCollectionName(), q, newRefreshTokenDb,
+                            new FindOptions(),
+                            new UpdateOptions().setUpsert(true));
+                })
+                .map(this::fromDbFormat);
     }
 
     public Single<Boolean> existsWithSub(String sub) {
-        var q = new JsonObject().put(KEY_SUB, sub);
-        return mongoClient.rxCount(getCollectionName(), q)
+        return Single
+                .fromCallable(() -> mongoUtil.putUuid(sub, KEY_SUB, new JsonObject()))
+                .flatMap(q -> mongoClient.rxCount(getCollectionName(), q))
                 .map(num -> num > 0);
     }
 
     public Single<Boolean> existsWithSubAndDeviceId(String sub, String deviceId) {
-        var q = new JsonObject().put(KEY_SUB, sub).put(KEY_DEVICE_ID, deviceId);
-        return mongoClient.rxCount(getCollectionName(), q)
+        return Single
+                .fromCallable(() -> {
+                    var q = new JsonObject();
+                    mongoUtil.putUuid(sub,KEY_SUB, q);
+                    mongoUtil.putUuid(deviceId, KEY_DEVICE_ID, q);
+                    return q;
+                })
+                .flatMap(q -> mongoClient.rxCount(getCollectionName(), q))
                 .map(num -> num > 0);
     }
 
@@ -96,8 +137,9 @@ public class RefreshTokensRepository {
     }
 
     public Single<Long> deleteAllBySub(String sub) {
-        var q = new JsonObject().put(KEY_SUB, sub);
-        return mongoClient.rxRemoveDocuments(getCollectionName(), q)
+        return Maybe
+                .fromCallable(() -> mongoUtil.putUuid(sub, KEY_SUB, new JsonObject()))
+                .flatMap(q -> mongoClient.rxRemoveDocuments(getCollectionName(), q))
                 .map(MongoClientDeleteResult::getRemovedCount)
                 .toSingle(0L);
     }
@@ -115,7 +157,24 @@ public class RefreshTokensRepository {
                 .setSkip(skip)
                 .setLimit(limit);
         return mongoClient.findBatchWithOptions(getCollectionName(), new JsonObject(), opts)
-                .toFlowable();
+                .toFlowable()
+                .map(this::fromDbFormat);
+    }
+
+    private JsonObject toDbFormat(JsonObject refreshTokenApp) {
+        var refreshTokenDb = refreshTokenApp.copy();
+        mongoUtil.putUuid(refreshTokenApp.getString(KEY_JTI), KEY_JTI, refreshTokenDb);
+        mongoUtil.putUuid(refreshTokenApp.getString(KEY_DEVICE_ID), KEY_DEVICE_ID, refreshTokenDb);
+        mongoUtil.putUuid(refreshTokenApp.getString(KEY_SUB), KEY_SUB, refreshTokenDb);
+        return refreshTokenDb;
+    }
+
+    private JsonObject fromDbFormat(JsonObject refreshTokenDb) {
+        var refreshTokenApp = refreshTokenDb.copy();
+        refreshTokenApp.put(KEY_JTI, mongoUtil.readUuid(KEY_JTI, refreshTokenDb).toString());
+        refreshTokenApp.put(KEY_DEVICE_ID, mongoUtil.readUuid(KEY_DEVICE_ID, refreshTokenDb).toString());
+        refreshTokenApp.put(KEY_SUB, mongoUtil.readUuid(KEY_SUB, refreshTokenDb).toString());
+        return refreshTokenApp;
     }
 
     private static int getListAllBatchSize() {

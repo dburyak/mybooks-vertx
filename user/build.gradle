@@ -1,0 +1,3 @@
+application {
+    mainClassName = 'dburyak.demo.mybooks.user.app.App'
+}

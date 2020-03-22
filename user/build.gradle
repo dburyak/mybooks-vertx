@@ -1,3 +1,7 @@
+dependencies {
+    implementation "at.favre.lib:bcrypt:${bcryptVersion}"
+}
+
 application {
     mainClassName = 'dburyak.demo.mybooks.user.app.App'
 }

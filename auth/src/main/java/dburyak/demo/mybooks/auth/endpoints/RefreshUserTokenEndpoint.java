@@ -12,6 +12,8 @@ import io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import java.util.List;
+
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 import static io.vertx.core.http.HttpMethod.PUT;
 import static io.vertx.ext.web.api.validation.ParameterType.UUID;
@@ -39,15 +41,16 @@ public class RefreshUserTokenEndpoint implements Endpoint {
     }
 
     @Override
-    public Handler<RoutingContext> reqValidator() {
-        return HTTPRequestValidationHandler.create()
+    public List<Handler<RoutingContext>> reqValidators() {
+        var hTokenId = HTTPRequestValidationHandler.create()
                 .addPathParam(PATH_PARAM_REFRESH_TOKEN_ID, UUID);
+        return List.of(hTokenId);
     }
 
     @SuppressWarnings({"ResultOfMethodCallIgnored"})
     @Override
-    public Handler<RoutingContext> reqHandler() {
-        return (RoutingContext ctx) -> {
+    public List<Handler<RoutingContext>> reqHandlers() {
+        Handler<RoutingContext> h = (RoutingContext ctx) -> {
             userTokenService.refreshTokens(ctx.pathParam(PATH_PARAM_REFRESH_TOKEN_ID))
                     .subscribe(newTokensJson -> {
                         ctx.response().putHeader("content-type", "application/json")
@@ -60,5 +63,6 @@ public class RefreshUserTokenEndpoint implements Endpoint {
                         }
                     });
         };
+        return List.of(h);
     }
 }

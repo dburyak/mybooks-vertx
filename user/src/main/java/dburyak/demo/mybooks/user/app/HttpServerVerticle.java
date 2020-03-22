@@ -1,12 +1,13 @@
-package dburyak.demo.mybooks.auth.app;
+package dburyak.demo.mybooks.user.app;
 
 import dburyak.demo.mybooks.MicronautVerticle;
 import dburyak.demo.mybooks.MicronautVerticleProducer;
-import dburyak.demo.mybooks.auth.endpoints.GetUserTokenEndpoint;
-import dburyak.demo.mybooks.auth.endpoints.RefreshUserTokenEndpoint;
+import dburyak.demo.mybooks.user.endpoints.UserLoginEndpoint;
+import dburyak.demo.mybooks.user.endpoints.UserLogoutEndpoint;
 import dburyak.demo.mybooks.web.AuthenticatedMicroserviceHttpServerVerticle;
 import io.micronaut.context.annotation.Property;
 import io.vertx.reactivex.ext.web.Router;
+import io.vertx.reactivex.ext.web.handler.BodyHandler;
 import io.vertx.reactivex.servicediscovery.ServiceDiscovery;
 import io.vertx.reactivex.servicediscovery.types.HttpEndpoint;
 
@@ -17,22 +18,25 @@ import javax.inject.Singleton;
 public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerticle {
 
     @Inject
-    private GetUserTokenEndpoint getUserTokenEndpoint;
+    private UserLoginEndpoint userLoginEndpoint;
 
     @Inject
-    private RefreshUserTokenEndpoint refreshUserTokenEndpoint;
+    private UserLogoutEndpoint userLogoutEndpoint;
+
+    @Inject
+    private BodyHandler bodyReaderReqHandler;
 
     @Inject
     private ServiceDiscovery serviceDiscovery;
 
-    @Property(name = "service.auth.discovery.base-name")
+    @Property(name = "service.user.discovery.base-name")
     private String discoveryBaseName;
 
-    @Property(name = "service.auth.discovery.get-user-token")
-    private String discoveryGetUserTokenName;
+    @Property(name = "service.user.discovery.user-login")
+    private String discoveryUserLoginName;
 
-    @Property(name = "service.auth.discovery.refresh-user-token")
-    private String discoveryRefreshUserTokenName;
+    @Property(name = "service.user.discovery.user-logout")
+    private String discoveryUserLogoutName;
 
     @Property(name = "http.host")
     private String httpHost;
@@ -42,17 +46,17 @@ public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerti
 
     @Override
     protected void doBuildPublicEndpoints(Router router) {
-        refreshUserTokenEndpoint.registerEndpoint(router, null);
+        userLoginEndpoint.registerEndpoint(router, bodyReaderReqHandler);
         serviceDiscovery.rxPublish(HttpEndpoint
-                .createRecord(discoveryBaseName + discoveryRefreshUserTokenName, httpHost, httpPort, null))
+                .createRecord(discoveryBaseName + discoveryUserLoginName, httpHost, httpPort, null))
                 .subscribe();
     }
 
     @Override
     protected void doBuildProtectedEndpoints(Router router) {
-        getUserTokenEndpoint.registerEndpoint(router, null);
+        userLogoutEndpoint.registerEndpoint(router, null);
         serviceDiscovery.rxPublish(HttpEndpoint
-                .createRecord(discoveryBaseName + discoveryGetUserTokenName,httpHost, httpPort, null))
+                .createRecord(discoveryBaseName + discoveryUserLogoutName, httpHost, httpPort, null))
                 .subscribe();
     }
 

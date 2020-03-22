@@ -15,6 +15,7 @@ import io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Base64;
+import java.util.List;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 import static io.vertx.core.http.HttpMethod.GET;
@@ -50,22 +51,24 @@ public class GetUserTokenEndpoint implements Endpoint {
 
     @SuppressWarnings({"ResultOfMethodCallIgnored", "Convert2MethodRef"})
     @Override
-    public Handler<RoutingContext> reqAccessHandler() {
-        return (RoutingContext ctx) -> userTokenService.hasPermissionToGenerateToken(ctx.user())
-                .subscribe(canAccess -> {
-                    if (!canAccess) {
-                        ctx.fail(FORBIDDEN.code());
-                    } else { // has access, handle request further
-                        ctx.next();
-                    }
-                }, err -> {
-                    ctx.fail(err);
-                });
+    public List<Handler<RoutingContext>> reqAccessHandlers() {
+        Handler<RoutingContext> h = (RoutingContext ctx) ->
+                userTokenService.hasPermissionToGenerateToken(ctx.user())
+                        .subscribe(canAccess -> {
+                            if (!canAccess) {
+                                ctx.fail(FORBIDDEN.code());
+                            } else { // has access, handle request further
+                                ctx.next();
+                            }
+                        }, err -> {
+                            ctx.fail(err);
+                        });
+        return List.of(h);
     }
 
     @Override
-    public Handler<RoutingContext> reqValidator() {
-        return HTTPRequestValidationHandler.create()
+    public List<Handler<RoutingContext>> reqValidators() {
+        var hClaims = HTTPRequestValidationHandler.create()
                 .addQueryParam(PARAM_NAME_CLAIMS, BASE64, true)
                 .addCustomValidatorFunction(new CustomValidator(ctx -> {
                     try {
@@ -91,7 +94,8 @@ public class GetUserTokenEndpoint implements Endpoint {
                         throw err;
                     }
                     if (deviceId == null || deviceId.isBlank()) {
-                        var err = new ValidationException("\"device_id\" must be specified in claims");
+                        var err = new ValidationException("\"" + UserTokenService.KEY_DEVICE_ID +
+                                "\" must be specified in claims");
                         err.setParameterName(PARAM_NAME_CLAIMS);
                         err.setValue(userClaims.toString());
                         throw err;
@@ -99,14 +103,16 @@ public class GetUserTokenEndpoint implements Endpoint {
                     userClaims.remove(UserTokenService.KEY_JTI);
                     userClaims.remove(UserTokenService.KEY_EXP);
                     userClaims.remove(UserTokenService.KEY_IAT);
+                    userClaims.remove("nbf");
                     ctx.put(CTX_KEY_USER_CLAIMS_JSON, userClaims);
                 }));
+        return List.of(hClaims);
     }
 
     @SuppressWarnings({"ResultOfMethodCallIgnored", "Convert2MethodRef"})
     @Override
-    public Handler<RoutingContext> reqHandler() {
-        return (RoutingContext ctx) -> {
+    public List<Handler<RoutingContext>> reqHandlers() {
+        Handler<RoutingContext> h = (RoutingContext ctx) -> {
             var userClaims = ctx.<JsonObject>get(CTX_KEY_USER_CLAIMS_JSON);
             userTokenService.generateTokens(userClaims)
                     .subscribe(tokensJson -> {
@@ -116,5 +122,6 @@ public class GetUserTokenEndpoint implements Endpoint {
                         ctx.fail(err);
                     });
         };
+        return List.of(h);
     }
 }

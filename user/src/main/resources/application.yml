@@ -1,23 +1,19 @@
 jwt:
-  issuer: "mybooks.service.auth"
+  issuer: "mybooks.service.user"
   algorithm: "HS256"
   is-symmetric: true
 
   # this should be in env of course
   private-key: "strong shared password"
-  user-token:
-    access:
-      expires-in-minutes: 5
-    refresh:
-      # 8 days: 8*24*60 = 11520
-      expires-in-minutes: 11520
   service-token:
     expires-in-seconds: 60
 
 service:
   user:
-    jwt:
-      issuer: "mybooks.service.user"
+    discovery:
+      base-name: "mybooks.service.user"
+      user-login: "/user-login"
+      user-logout: "/user-logout"
   auth:
     discovery:
       base-name: "mybooks.service.auth"
@@ -26,14 +22,14 @@ service:
 
 http:
   host: "localhost"
-  port: 8097
+  port: 8096
   err-details-envs:
     - test
     - dev
 
 db:
   mongo:
-    db-name: "mybooksAuthDb"
+    db-name: "mybooksUserDb"
     host: "localhost"
     port: 27017
     min-pool-size: 1
@@ -42,3 +38,6 @@ db:
     cache:
       cache-1Lvl-enabled: false
       cache-2Lvl-enabled: false
+
+password:
+  bcrypt-hash-cost: 15

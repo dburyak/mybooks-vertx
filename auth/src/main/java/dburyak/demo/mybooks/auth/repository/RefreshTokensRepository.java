@@ -38,9 +38,9 @@ public class RefreshTokensRepository {
         return COLLECTION_NAME;
     }
 
-    public Maybe<JsonObject> get(String id) {
+    public Maybe<JsonObject> get(String dbId) {
         return Maybe
-                .fromCallable(() -> new JsonObject().put("_id", id))
+                .fromCallable(() -> new JsonObject().put(mongoUtil.getKeyDbId(), dbId))
                 .flatMap(q -> mongoClient.rxFindOne(getCollectionName(), q, null))
                 .map(this::fromDbFormat);
     }

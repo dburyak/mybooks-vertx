@@ -1,0 +1,41 @@
+Configuration:
+  status: info
+  name: default
+  appenders:
+    Console:
+      name: CONSOLE
+      PatternLayout:
+        Pattern: "%style{\
+            %date{yyyy-MM-dd HH:mm:ss.SSS}\
+            }{white} \
+            \
+            %highlight{%-5level}{FATAL=Blinking bright red, ERROR=Red, WARN=Yellow, INFO=Cyan, DEBUG=White, TRACE=Black} \
+            \
+            [%style{\
+            %17.17thread\
+            }{yellow}] \
+            \
+            %style{\
+            %40.40logger\
+            }{cyan} - \
+            \
+            %msg%n%throwable\
+            "
+  Loggers:
+    Root:
+      level: debug
+      AppenderRef:
+        ref: CONSOLE
+    logger:
+      - name: com.athaydes.spockframework.report
+        level: warn
+      - name: io.netty
+        level: info
+      - name: io.vertx
+        level: info
+      - name: io.micronaut
+        level: info
+      - name: org.mongodb.driver
+        level: info
+      - name: org.mongodb.driver.connection
+        level: warn

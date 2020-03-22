@@ -3,7 +3,6 @@ package dburyak.demo.mybooks.user.app;
 import dburyak.demo.mybooks.MicronautVerticleProducer;
 import dburyak.demo.mybooks.MicronautVertxApplication;
 
-import java.util.Collections;
 import java.util.List;
 
 public class App extends MicronautVertxApplication {
@@ -18,6 +17,11 @@ public class App extends MicronautVertxApplication {
 
     @Override
     public List<MicronautVerticleProducer<?>> getVerticlesProducers() {
-        return Collections.emptyList();
+        return List.of(
+                new DbInitVerticle.Producer(),
+                new AboutVerticle.Producer(),
+                new HealthVerticle.Producer(),
+                new ServiceTokenVerticle.Producer(),
+                new HttpServerVerticle.Producer());
     }
 }

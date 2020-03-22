@@ -11,6 +11,8 @@ import io.vertx.reactivex.ext.web.handler.BodyHandler;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import java.util.List;
+
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 
 /**
@@ -76,7 +78,7 @@ public interface Endpoint {
      *
      * @return request handler
      */
-    default Handler<RoutingContext> reqAccessHandler() {
+    default List<Handler<RoutingContext>> reqAccessHandlers() {
         return null;
     }
 
@@ -85,7 +87,7 @@ public interface Endpoint {
      *
      * @return request handler
      */
-    default Handler<RoutingContext> reqValidator() {
+    default List<Handler<RoutingContext>> reqValidators() {
         return null;
     }
 
@@ -94,7 +96,7 @@ public interface Endpoint {
      *
      * @return request handler
      */
-    default Handler<RoutingContext> reqHandler() {
+    default List<Handler<RoutingContext>> reqHandlers() {
         return null;
     }
 
@@ -105,8 +107,8 @@ public interface Endpoint {
      */
     @Inject
     default void registerEndpoint(Router router, BodyHandler bodyHandler) {
-        var reqHandler = reqHandler();
-        if (reqHandler == null) {
+        var reqHandlers = reqHandlers();
+        if (reqHandlers == null || reqHandlers.isEmpty()) {
             return;
         }
 
@@ -125,15 +127,21 @@ public interface Endpoint {
                 route.handler(bodyHandler);
             }
             route = configureRoute(route);
-            var accessHandler = reqAccessHandler();
-            var validator = reqValidator();
-            if (accessHandler != null) {
-                route.handler(accessHandler);
+            var accessHandlers = reqAccessHandlers();
+            var validators = reqValidators();
+            if (accessHandlers != null && !accessHandlers.isEmpty()) {
+                for (var acc : accessHandlers) {
+                    route.handler(acc);
+                }
             }
-            if (validator != null) {
-                route.handler(validator);
+            if (validators != null && !validators.isEmpty()) {
+                for (var v : validators) {
+                    route.handler(v);
+                }
             }
-            route.handler(reqHandler);
+            for (var h: reqHandlers) {
+                route.handler(h);
+            }
             route.failureHandler(ctx -> {
                 var err = ctx.failure();
                 if (err instanceof ValidationException) {
@@ -142,7 +150,7 @@ public interface Endpoint {
                             "type: " + validationErr.type() + "\n" +
                             "param: " + validationErr.parameterName() + "\n" +
                             "value: " + validationErr.value() + "\n" +
-                            "rule: " + validationErr.validationRule();
+                            "rule: " + validationErr.validationRule() + "\n";
                     ctx.response()
                             .setChunked(true)
                             .setStatusCode(BAD_REQUEST.code())

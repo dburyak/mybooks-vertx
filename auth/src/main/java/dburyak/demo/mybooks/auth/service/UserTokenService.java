@@ -2,6 +2,7 @@ package dburyak.demo.mybooks.auth.service;
 
 import dburyak.demo.mybooks.auth.BadUserClaimsException;
 import dburyak.demo.mybooks.auth.repository.RefreshTokensRepository;
+import dburyak.demo.mybooks.domain.Permission;
 import io.micronaut.context.annotation.Property;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
@@ -113,7 +114,7 @@ public class UserTokenService {
         var iss = principal.getString(KEY_ISS);
         var isRequestFromUserService = iss != null && iss.startsWith(userServiceJwtIssuer);
         return isRequestFromUserService
-                ? user.rxIsAuthorized(Permissions.USER_TOKEN_GENERATE.toString())
+                ? user.rxIsAuthorized(Permission.USER_TOKEN_GENERATE.toString())
                 : Single.just(false);
     }
 
@@ -157,7 +158,7 @@ public class UserTokenService {
                         .setIssuer(userServiceJwtIssuer)
                         .setSubject(userServiceJwtIssuer)
                         .setExpiresInMinutes(100 * 365 * 24 * 60)
-                        .setPermissions(List.of(Permissions.USER_TOKEN_GENERATE.toString())));
+                        .setPermissions(List.of(Permission.USER_TOKEN_GENERATE.toString())));
         log.info("postman user service token: {}", postmanUserServiceToken);
         jwtAuth.authenticate(new JsonObject().put("jwt", postmanUserServiceToken), ar -> {
             log.info("postman user service token data: \n{}", ar.result().principal().encodePrettily());

@@ -10,6 +10,13 @@ import java.util.UUID;
 
 @Singleton
 public class MongoUtil {
+    public static final String KEY_DB_ID = "_id";
+    public static final String OPERATOR_IN = "$in";
+
+    public String getKeyDbId() {
+        return KEY_DB_ID;
+    }
+
     public byte[] toUuidBytes(String uuid) {
         return toUuidBytes(UUID.fromString(uuid));
     }

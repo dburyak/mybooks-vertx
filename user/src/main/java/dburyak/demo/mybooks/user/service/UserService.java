@@ -1,19 +1,65 @@
 package dburyak.demo.mybooks.user.service;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
+import dburyak.demo.mybooks.discovery.ServiceDiscoveryUtil;
 import dburyak.demo.mybooks.domain.Permission;
+import dburyak.demo.mybooks.user.app.ServiceTokenVerticle;
 import dburyak.demo.mybooks.user.domain.User;
+import dburyak.demo.mybooks.user.endpoints.UserLoginEndpoint;
 import dburyak.demo.mybooks.user.repository.UsersRepository;
+import io.micronaut.context.annotation.Property;
 import io.micronaut.context.annotation.Value;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import io.reactivex.Single;
+import io.reactivex.disposables.Disposable;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import io.vertx.reactivex.core.eventbus.EventBus;
+import io.vertx.reactivex.core.eventbus.Message;
+import io.vertx.reactivex.ext.web.client.HttpRequest;
+import io.vertx.reactivex.ext.web.client.WebClient;
+import io.vertx.reactivex.servicediscovery.ServiceDiscovery;
+import io.vertx.reactivex.servicediscovery.types.HttpEndpoint;
+import io.vertx.servicediscovery.Record;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.inject.Singleton;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.NoSuchElementException;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 @Singleton
 public class UserService {
+    private static final Logger log = LogManager.getLogger(UserService.class);
+
+    private Disposable discoverySubscriptionGetUserToken;
+    private String discoveryAuthGetUserTokenAddr;
+    private WebClient authGetUserClient;
+
+    @Property(name = "service.auth.discovery.base-name")
+    private String discoveryAuthBase;
+
+    @Property(name = "service.auth.discovery.get-user-token")
+    private String discoveryAuthGetUserToken;
+
+    @Value("${password.bcrypt-hash-cost:15}")
+    private int bcryptHashCost;
+
+    @Inject
+    private ServiceDiscovery discovery;
+
+    @Inject
+    private ServiceDiscoveryUtil discoveryUtil;
 
     @Inject
     private UsersRepository usersRepository;
@@ -25,13 +71,19 @@ public class UserService {
     private Vertx vertx;
 
     @Inject
+    private EventBus eventBus;
+
+    @Inject
     private BCrypt.Hasher bcryptHasher;
 
     @Inject
     private BCrypt.Verifyer bcryptVerifier;
 
-    @Value("${password.bcrypt-hash-cost:15}")
-    private int bcryptHashCost;
+    @Inject
+    private Base64.Encoder base64Encoder;
+
+    @Inject
+    private Provider<ServiceTokenVerticle> serviceTokenVerticle;
 
     public Flowable<Permission> getAllPermissionsOfUserId(String userId) {
         return usersRepository.findByUserId(userId)
@@ -39,8 +91,9 @@ public class UserService {
     }
 
     public Flowable<Permission> getAllPermissionsOfUser(User user) {
+        var userRoles = user.getRoles() != null ? user.getRoles() : Collections.<String>emptySet();
         return Flowable.fromIterable(user.getExplicitPermissions())
-                .concatWith(roleService.getPermissionsOfRoleNames(user.getRoles()))
+                .concatWith(roleService.getPermissionsOfRoleNames(userRoles))
                 .distinct();
     }
 
@@ -55,7 +108,7 @@ public class UserService {
     public Single<Boolean> verifyPassword(String plainPassword, String hash) {
         return vertx
                 .<BCrypt.Result>rxExecuteBlocking(p ->
-                        bcryptVerifier.verify(plainPassword.toCharArray(), hash.toCharArray()), false)
+                        p.complete(bcryptVerifier.verify(plainPassword.toCharArray(), hash.toCharArray())), false)
                 .map(res -> res.verified)
                 .toSingle();
     }
@@ -67,5 +120,105 @@ public class UserService {
     public Single<User> hashAndSetPassword(String plainPassword, User user) {
         return hashPassword(plainPassword)
                 .map(user::withPasswordHash);
+    }
+
+    public Single<User> saveUserWithPassword(User user, String password) {
+        return hashAndSetPassword(password, user)
+                .flatMapMaybe(u -> usersRepository.save(u))
+                .toSingle(user);
+    }
+
+    public Single<User> updateUser(User user) {
+        return Single.error(() -> new AssertionError("not implemented"));
+    }
+
+    public Single<User> saveUserWithPasswordOrUpdateWithoutPassword(User user, String password) {
+        return hashPassword(password)
+                .flatMap(passwordHash -> usersRepository.insertWithPasswordOrUpdateWithoutPassword(user, passwordHash));
+    }
+
+    public Single<JsonObject> loginUser(JsonObject userLoginInfo) {
+        var userId = userLoginInfo.getString(User.KEY_USER_ID);
+        var login = userLoginInfo.getString(User.KEY_LOGIN);
+        var email = userLoginInfo.getString(User.KEY_EMAIL);
+        var deviceId = userLoginInfo.getString(UserLoginEndpoint.KEY_DEVICE_ID);
+
+        // find user
+        var user = (userId != null && !userId.isEmpty()) ? usersRepository.findByUserId(userId)
+                : (login != null && !login.isEmpty()) ? usersRepository.findByLogin(login)
+                : (email != null && !email.isEmpty()) ? usersRepository.findByEmail(email)
+                : Maybe.<User>error(() -> new BadUserLoginInfoException(userLoginInfo));
+        return user.toSingle()
+                .onErrorResumeNext(err -> {
+                    if (err instanceof NoSuchElementException) {
+                        return Single.error(() -> new UserNotFoundException(userLoginInfo));
+                    } else {
+                        return Single.error(err);
+                    }
+                })
+
+                // check password
+                .flatMap(u -> verifyPassword(userLoginInfo.getString(UserLoginEndpoint.KEY_PASSWORD), u)
+                        .map(passwordOk -> {
+                            if (!passwordOk) {
+                                throw new WrongPasswordException(userLoginInfo);
+                            }
+                            return u;
+                        }))
+
+                // get new tokens
+                .flatMap(u -> loginUser(u, deviceId));
+    }
+
+    private Single<JsonObject> loginUser(User user, String deviceId) {
+        var authUrl = "/user-token";
+        return getAllPermissionsOfUser(user)
+                .map(Permission::toString)
+                .toList()
+                .map(permissions -> new JsonObject()
+                        .put("sub", user.getUserId())
+                        .put("device_id", deviceId)
+                        .put("permissions", new JsonArray(permissions)))
+                .zipWith(eventBus.<String>rxRequest(serviceTokenVerticle.get().getServiceTokenAddr(), null)
+                                .map(Message::body),
+                        (claims, authToken) -> {
+                            var claimsBase64 = base64Encoder.encodeToString(claims.encode().getBytes());
+                            return authGetUserClient.get(authUrl)
+                                    .putHeader(HttpHeaders.ACCEPT.toString(), "application/json")
+                                    .bearerTokenAuthentication(authToken)
+                                    .setQueryParam("claims", claimsBase64);
+                        })
+                .flatMap(HttpRequest::rxSend)
+                .map(resp -> {
+                    if (resp.statusCode() == OK.code()) {
+                        var respJson = resp.bodyAsJsonObject();
+                        return respJson;
+                    } else {
+                        throw new RuntimeException("failed to call auth service: url={" + authUrl + "}, respCode={" +
+                                resp.statusCode() + "}, respBody={" + resp.bodyAsString() + "}");
+                    }
+                });
+    }
+
+    @PostConstruct
+    private void init() {
+        discoveryAuthGetUserTokenAddr = discoveryAuthBase + discoveryAuthGetUserToken;
+        discoverySubscriptionGetUserToken = discoveryUtil
+                .discover(discoveryAuthGetUserTokenAddr, this::isGetUserToken)
+                .doOnNext(r -> log.debug("discovered auth/get-user-token service: {}", r::toJson))
+                .flatMapSingle(rec -> HttpEndpoint
+                        .rxGetWebClient(discovery, new JsonObject().put("name", discoveryAuthGetUserTokenAddr)))
+                .subscribe(
+                        cl -> authGetUserClient = cl,
+                        err -> log.error("discovery failure for auth/get-user-token service", err));
+    }
+
+    @PreDestroy
+    private void dispose() {
+        discoverySubscriptionGetUserToken.dispose();
+    }
+
+    private boolean isGetUserToken(Record record) {
+        return discoveryAuthGetUserTokenAddr.equals(record.getName()) && HttpEndpoint.TYPE.equals(record.getType());
     }
 }

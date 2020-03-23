@@ -39,3 +39,7 @@ Configuration:
         level: info
       - name: org.mongodb.driver.connection
         level: warn
+      - name: com.hazelcast
+        level: warn
+      - name: com.networknt.schema
+        level: warn

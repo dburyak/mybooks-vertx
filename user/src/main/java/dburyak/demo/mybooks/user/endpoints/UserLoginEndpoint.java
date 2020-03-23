@@ -4,11 +4,13 @@ import dburyak.demo.mybooks.user.service.UserService;
 import dburyak.demo.mybooks.util.RegexUtil;
 import dburyak.demo.mybooks.web.Endpoint;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.reactivex.ext.web.Route;
 import io.vertx.reactivex.ext.web.RoutingContext;
-import io.vertx.reactivex.ext.web.api.RequestParameters;
 import io.vertx.reactivex.ext.web.api.validation.HTTPRequestValidationHandler;
 
 import javax.inject.Inject;
@@ -26,6 +28,7 @@ public class UserLoginEndpoint implements Endpoint {
     public static final String KEY_LOGIN = "login";
     public static final String KEY_EMAIL = "email";
     public static final String KEY_PASSWORD = "password";
+    public static final String KEY_DEVICE_ID = "device_id";
 
     @Inject
     private RegexUtil regexUtil;
@@ -76,14 +79,22 @@ public class UserLoginEndpoint implements Endpoint {
                 throw err;
             }
             ctx.put(KEY_CTX_BODY_JSON, bodyJson);
+            ctx.next();
         };
         return List.of(hJsonSchema, hJsonUserId);
     }
 
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "Convert2MethodRef"})
     @Override
     public List<Handler<RoutingContext>> reqHandlers() {
         Handler<RoutingContext> h = (RoutingContext ctx) -> {
-            ctx.response().end("done");
+            var userLoginInfo = ctx.<JsonObject>get(KEY_CTX_BODY_JSON);
+            userService.loginUser(userLoginInfo)
+                    .subscribe(
+                            tokensJson -> ctx.response()
+                                    .putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+                                    .end(tokensJson.encode()),
+                            err -> ctx.fail(err));
         };
         return List.of(h);
     }

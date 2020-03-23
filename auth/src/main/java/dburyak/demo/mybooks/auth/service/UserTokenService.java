@@ -10,8 +10,8 @@ import io.vertx.ext.jwt.JWT;
 import io.vertx.ext.jwt.JWTOptions;
 import io.vertx.reactivex.ext.auth.User;
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @Singleton
 public class UserTokenService {
-    private static final Logger log = LoggerFactory.getLogger(UserTokenService.class);
+    private static final Logger log = LogManager.getLogger(UserTokenService.class);
 
     public static final String KEY_ISS = "iss";
     public static final String KEY_SUB = "sub";
@@ -100,8 +100,9 @@ public class UserTokenService {
                     return refreshTokensRepository.insert(newRefreshToken)
                             .toSingle("ignored")
                             .doOnSuccess(mongoObjId -> log.debug("token refreshed: userId={}, deviceId={}, jti={}",
-                                    newRefreshToken.getString(KEY_SUB), newRefreshToken.getString(KEY_DEVICE_ID),
-                                    newRefreshToken.getString(KEY_JTI)))
+                                    () -> newRefreshToken.getString(KEY_SUB),
+                                    () -> newRefreshToken.getString(KEY_DEVICE_ID),
+                                    () -> newRefreshToken.getString(KEY_JTI)))
                             .map(ignr -> List.of(userClaims, newRefreshToken.getString(KEY_JTI)));
                 })
                 .map(t2 -> new JsonObject()
@@ -112,7 +113,7 @@ public class UserTokenService {
     public Single<Boolean> hasPermissionToGenerateToken(User user) {
         var principal = user.principal();
         var iss = principal.getString(KEY_ISS);
-        var isRequestFromUserService = iss != null && iss.startsWith(userServiceJwtIssuer);
+        var isRequestFromUserService = iss != null && iss.equals(userServiceJwtIssuer);
         return isRequestFromUserService
                 ? user.rxIsAuthorized(Permission.USER_TOKEN_GENERATE.toString())
                 : Single.just(false);
@@ -161,7 +162,7 @@ public class UserTokenService {
                         .setPermissions(List.of(Permission.USER_TOKEN_GENERATE.toString())));
         log.info("postman user service token: {}", postmanUserServiceToken);
         jwtAuth.authenticate(new JsonObject().put("jwt", postmanUserServiceToken), ar -> {
-            log.info("postman user service token data: \n{}", ar.result().principal().encodePrettily());
+            log.info("postman user service token data: \n{}", () -> ar.result().principal().encodePrettily());
         });
 
         var sampleUserClaims = new JsonObject()

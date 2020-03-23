@@ -9,6 +9,9 @@ jwt:
     expires-in-seconds: 60
 
 service:
+  discovery:
+    announce-addr: "vertx.discovery.announce"
+    usage-addr: "vertx.discovery.usage"
   user:
     discovery:
       base-name: "mybooks.service.user"

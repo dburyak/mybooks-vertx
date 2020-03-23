@@ -103,6 +103,11 @@ public class User implements DomainObject<User> {
         dbId = newDbId;
     }
 
+    public User withDbId(String newDbId) {
+        setDbId(newDbId);
+        return this;
+    }
+
     public String getUserId() {
         return userId;
     }
@@ -110,6 +115,11 @@ public class User implements DomainObject<User> {
     public void setUserId(String userId) {
         Objects.requireNonNull(userId);
         this.userId = userId;
+    }
+
+    public User withUserId(String userId) {
+        setUserId(userId);
+        return this;
     }
 
     public String getLogin() {
@@ -120,12 +130,22 @@ public class User implements DomainObject<User> {
         this.login = login;
     }
 
+    public User withLogin(String login) {
+        setLogin(login);
+        return this;
+    }
+
     public String getEmail() {
         return email;
     }
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public User withEmail(String email) {
+        setEmail(email);
+        return this;
     }
 
     public String getPasswordHash() {
@@ -149,6 +169,11 @@ public class User implements DomainObject<User> {
         this.roles = roles;
     }
 
+    public User withRoles(Set<String> roles) {
+        setRoles(roles);
+        return this;
+    }
+
     public Set<Permission> getExplicitPermissions() {
         return explicitPermissions;
     }
@@ -157,10 +182,20 @@ public class User implements DomainObject<User> {
         this.explicitPermissions = explicitPermissions;
     }
 
+    public User withExplicitPermissions(Set<Permission> explicitPermissions) {
+        setExplicitPermissions(explicitPermissions);
+        return this;
+    }
+
     public void setExplicitPermissionsByNames(Set<String> explicitPermissionNames) {
         this.explicitPermissions = explicitPermissionNames.stream()
                 .map(Permission::fromPermissionName)
                 .collect(Collectors.toSet()); ;
+    }
+
+    public User withExplicitPermissionsByNames(Set<String> explicitPermissionNames) {
+        setExplicitPermissionsByNames(explicitPermissionNames);
+        return this;
     }
 
     @Override

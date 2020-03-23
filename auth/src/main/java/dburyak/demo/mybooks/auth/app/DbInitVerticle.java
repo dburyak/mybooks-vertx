@@ -8,15 +8,15 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.reactivex.core.eventbus.EventBus;
 import io.vertx.reactivex.ext.mongo.MongoClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Singleton
 public class DbInitVerticle extends MicronautVerticle {
-    private static final Logger log = LoggerFactory.getLogger(DbInitVerticle.class);
+    private static final Logger log = LogManager.getLogger(DbInitVerticle.class);
     private static final String EB_ADDR_IS_INITIALIZED = DbInitVerticle.class + ".isInitialized";
 
     private boolean isInitialized = false;

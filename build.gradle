@@ -88,23 +88,31 @@ subprojects {
 
         application {
             applicationDefaultJvmArgs += [
+                    '-Dmicronaut.environments=prod',
                     '-Dlog4j2.contextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector',
                     '-Dlog4j2.asyncLoggerRingBufferSize=1048576', // 1024 * 1024
                     '-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory',
-                    '-Dmicronaut.environments=prod'
+                    '-Dhazelcast.logging.type=slf4j'
             ]
         }
 
         tasks.run {
-            jvmArgs += '-Dmicronaut.environments=dev'
+            jvmArgs += [
+                    '-Dmicronaut.environments=dev',
+                    '-Dlog4j2.contextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector',
+                    '-Dlog4j2.asyncLoggerRingBufferSize=1048576', // 1024 * 1024
+                    '-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory',
+                    '-Dhazelcast.logging.type=slf4j'
+            ]
         }
 
         tasks.withType(Test) {
             jvmArgs += [
+                    '-Dmicronaut.environments=test',
                     '-Dlog4j2.contextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector',
                     '-Dlog4j2.asyncLoggerRingBufferSize=1048576', // 1024 * 1024
                     '-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory',
-                    '-Dmicronaut.environments=test'
+                    '-Dhazelcast.logging.type=slf4j'
             ]
         }
     }

@@ -5,6 +5,7 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.context.annotation.Prototype;
 import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import io.vertx.ext.jwt.JWTOptions;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.ext.auth.AuthProvider;
 import io.vertx.reactivex.ext.auth.jwt.JWTAuth;
@@ -24,6 +25,9 @@ public class JwtAuthFactory {
     @Property(name = "jwt.is-symmetric")
     private boolean isSymmetric;
 
+    @Property(name = "jwt.issuer")
+    private String issuer;
+
     @Singleton
     public JWTAuth jwtAuth(Vertx vertx, JWTAuthOptions jwtAuthOptions) {
         return JWTAuth.create(vertx, jwtAuthOptions);
@@ -40,6 +44,11 @@ public class JwtAuthFactory {
             cryptKeysOpts.setSecretKey(jwtPrivateKey);
         }
         return new JWTAuthOptions().addPubSecKey(cryptKeysOpts);
+    }
+
+    @Prototype
+    public JWTOptions jwtOptions() {
+        return new JWTOptions().setIssuer(issuer);
     }
 
     @Singleton

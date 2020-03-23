@@ -17,6 +17,7 @@ dependencies {
     api "io.vertx:vertx-web-api-contract:${vertxVersion}"
     api "io.vertx:vertx-health-check:${vertxVersion}"
     api "io.vertx:vertx-mongo-client:${vertxVersion}"
+    api "io.vertx:vertx-hazelcast:${vertxVersion}"
 
     // other
     api "org.slf4j:slf4j-api:${slf4jApiVersion}"

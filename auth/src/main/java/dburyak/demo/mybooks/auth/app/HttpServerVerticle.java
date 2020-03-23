@@ -52,7 +52,7 @@ public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerti
     protected void doBuildProtectedEndpoints(Router router) {
         getUserTokenEndpoint.registerEndpoint(router, null);
         serviceDiscovery.rxPublish(HttpEndpoint
-                .createRecord(discoveryBaseName + discoveryGetUserTokenName,httpHost, httpPort, null))
+                .createRecord(discoveryBaseName + discoveryGetUserTokenName, httpHost, httpPort, null))
                 .subscribe();
     }
 

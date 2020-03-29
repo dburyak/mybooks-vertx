@@ -20,7 +20,7 @@ import static dburyak.demo.mybooks.dal.MongoUtil.OPERATOR_IN;
 
 @Singleton
 public class RolesRepository {
-    private static final int LIST_ALL_BATCH_SIZE = 20;
+    private static final int LIST_BATCH_SIZE = 20;
     private static final int FIND_ALL_BY_NAMES_BATCH_SIZE = 20;
 
     public static final String COLLECTION_NAME = "roles";
@@ -59,13 +59,19 @@ public class RolesRepository {
         return list(0, -1);
     }
 
-    public Flowable<Role> list(int skip, int limit) {
-        var opts = new FindOptions().setBatchSize(getListAllBatchSize())
-                .setSkip(skip)
+    public Flowable<Role> list(int offset, int limit) {
+        var opts = new FindOptions().setBatchSize(getListBatchSize())
+                .setSkip(offset)
                 .setLimit(limit);
         return mongoClient.findBatchWithOptions(getCollectionName(), new JsonObject(), opts)
                 .toFlowable()
                 .map(Role::new);
+    }
+
+    public Maybe<String> save(Role role) {
+        return Maybe
+                .fromCallable(role::toJson)
+                .flatMap(roleJson -> mongoClient.rxSave(getCollectionName(), roleJson));
     }
 
     private Maybe<Role> findOneByQuery(Supplier<JsonObject> querySupplier) {
@@ -75,8 +81,8 @@ public class RolesRepository {
                 .map(Role::new);
     }
 
-    private int getListAllBatchSize() {
-        return LIST_ALL_BATCH_SIZE;
+    private int getListBatchSize() {
+        return LIST_BATCH_SIZE;
     }
 
     private int getFindAllByNamesBatchSize() {

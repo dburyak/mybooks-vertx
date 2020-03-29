@@ -44,3 +44,7 @@ db:
 
 password:
   bcrypt-hash-cost: 15
+
+list:
+  max-limit:
+    list-all-users: 200

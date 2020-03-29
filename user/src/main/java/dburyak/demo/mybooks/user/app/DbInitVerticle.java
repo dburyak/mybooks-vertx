@@ -3,12 +3,13 @@ package dburyak.demo.mybooks.user.app;
 import dburyak.demo.mybooks.MicronautVerticle;
 import dburyak.demo.mybooks.MicronautVerticleProducer;
 import dburyak.demo.mybooks.domain.Permission;
+import dburyak.demo.mybooks.user.domain.Role;
 import dburyak.demo.mybooks.user.domain.User;
 import dburyak.demo.mybooks.user.repository.UsersRepository;
 import dburyak.demo.mybooks.user.service.RoleService;
 import dburyak.demo.mybooks.user.service.UserService;
 import io.reactivex.Completable;
-import io.reactivex.Single;
+import io.reactivex.Maybe;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.IndexOptions;
 import io.vertx.reactivex.core.eventbus.EventBus;
@@ -20,6 +21,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.stream.Collectors;
 
 @Singleton
 public class DbInitVerticle extends MicronautVerticle {
@@ -54,6 +56,7 @@ public class DbInitVerticle extends MicronautVerticle {
                 .andThen(createLoginIndex())
                 .andThen(createEmailIndex())
                 .andThen(createRolesIndex())
+                .andThen(createAdminRole())
                 .andThen(createAdminUser())
                 .doOnComplete(() -> {
                     log.info("done database init");
@@ -120,19 +123,34 @@ public class DbInitVerticle extends MicronautVerticle {
                 .doOnError(err -> log.error("failed to create index: indexName={}", indexName, err));
     }
 
+    private Completable createAdminRole() {
+        var roleName = "admin";
+        return Maybe
+                .fromCallable(() -> new HashSet<>(Arrays.asList(Permission.values())))
+                .flatMap(allPermissions ->
+                        roleService.saveRole(new Role().withName("admin").withPermissions(allPermissions)))
+                .doOnSubscribe(ignr -> log.debug("creating role: roleName={}", roleName))
+                .doOnComplete(() -> log.debug("role created: roleName={}", roleName))
+                .doOnError(err -> log.error("failed to create role: roleName={}", roleName, err))
+                .ignoreElement();
+    }
+
     private Completable createAdminUser() {
-        return Single
-                .fromCallable(() -> {
-                    log.debug("creating admin user");
+        var login = "admin";
+        var password = "admin";
+        return roleService
+                .allRoles()
+                .toList()
+                .flatMap(allRoles -> {
                     var allPermissions = new HashSet<>(Arrays.asList(Permission.values()));
-                    return new User()
-                            .withLogin("admin")
-                            .withExplicitPermissions(allPermissions);
+                    var allRoleNames = allRoles.stream().map(Role::getName).collect(Collectors.toSet());
+                    return userService.saveNewUserOrUpdateExistingWithoutPassword(login, password,
+                            allRoleNames, allPermissions);
                 })
-                .flatMap(user -> userService.saveUserWithPasswordOrUpdateWithoutPassword(user, "admin"))
-                .ignoreElement()
-                .doOnComplete(() -> log.debug("admin user created"))
-                .doOnError(err -> log.error("failed to create admin user", err));
+                .doOnSubscribe(ignr -> log.debug("creating admin user: login={}", login))
+                .doOnSuccess(ignr -> log.debug("admin user created: login={}", login))
+                .doOnError(err -> log.error("failed to create admin user: login={}", login, err))
+                .ignoreElement();
     }
 
     public static class Producer extends MicronautVerticleProducer<Producer> {

@@ -2,6 +2,7 @@ package dburyak.demo.mybooks.user.app;
 
 import dburyak.demo.mybooks.MicronautVerticle;
 import dburyak.demo.mybooks.MicronautVerticleProducer;
+import dburyak.demo.mybooks.user.endpoints.UserListEndpoint;
 import dburyak.demo.mybooks.user.endpoints.UserLoginEndpoint;
 import dburyak.demo.mybooks.web.AuthenticatedMicroserviceHttpServerVerticle;
 import io.micronaut.context.annotation.Property;
@@ -18,6 +19,9 @@ public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerti
 
     @Inject
     private UserLoginEndpoint userLoginEndpoint;
+
+    @Inject
+    private UserListEndpoint userListEndpoint;
 
     @Inject
     private BodyHandler bodyReaderReqHandler;
@@ -46,6 +50,11 @@ public class HttpServerVerticle extends AuthenticatedMicroserviceHttpServerVerti
         serviceDiscovery.rxPublish(HttpEndpoint
                 .createRecord(discoveryBaseName + discoveryUserLoginName, httpHost, httpPort, null))
                 .subscribe();
+    }
+
+    @Override
+    protected void doBuildProtectedEndpoints(Router router) {
+        userListEndpoint.registerEndpoint(router, null);
     }
 
     public static class Producer extends MicronautVerticleProducer<Producer> {

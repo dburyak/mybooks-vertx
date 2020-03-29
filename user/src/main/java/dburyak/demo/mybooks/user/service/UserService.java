@@ -35,6 +35,8 @@ import javax.inject.Singleton;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
@@ -54,6 +56,9 @@ public class UserService {
 
     @Value("${password.bcrypt-hash-cost:15}")
     private int bcryptHashCost;
+
+    @Value("${list.max-limit.list-all-users:200}")
+    private int listAllUsersMaxLimit;
 
     @Inject
     private ServiceDiscovery discovery;
@@ -98,11 +103,22 @@ public class UserService {
     }
 
     public Single<String> hashPassword(String plainPassword) {
-        return vertx
-                .<byte[]>rxExecuteBlocking(p ->
-                        p.complete(bcryptHasher.hash(bcryptHashCost, plainPassword.toCharArray())), false)
-                .map(String::new)
-                .toSingle();
+        return Single
+                .create(emitter -> {
+                    var stillNeedToCompute = new AtomicBoolean(true);
+                    vertx.<byte[]>executeBlocking(p -> {
+                        if (stillNeedToCompute.get()) {
+                            p.complete(bcryptHasher.hash(bcryptHashCost, plainPassword.toCharArray()));
+                        }
+                    }, res -> {
+                        if (res.succeeded()) {
+                            emitter.onSuccess(new String(res.result()));
+                        } else {
+                            emitter.onError(res.cause());
+                        }
+                    });
+                    emitter.setCancellable(() -> stillNeedToCompute.set(false));
+                });
     }
 
     public Single<Boolean> verifyPassword(String plainPassword, String hash) {
@@ -123,18 +139,45 @@ public class UserService {
     }
 
     public Single<User> saveUserWithPassword(User user, String password) {
-        return hashAndSetPassword(password, user)
+        var resUser = user.copy();
+        return hashAndSetPassword(password, resUser)
                 .flatMapMaybe(u -> usersRepository.save(u))
-                .toSingle(user);
+                .map(resUser::withDbId)
+                .toSingle(resUser);
     }
 
     public Single<User> updateUser(User user) {
         return Single.error(() -> new AssertionError("not implemented"));
     }
 
-    public Single<User> saveUserWithPasswordOrUpdateWithoutPassword(User user, String password) {
-        return hashPassword(password)
-                .flatMap(passwordHash -> usersRepository.insertWithPasswordOrUpdateWithoutPassword(user, passwordHash));
+    public Single<User> saveNewUserOrUpdateExistingWithoutPassword(String login, String plainPassword,
+            Set<String> roles, Set<Permission> explicitPermissions) {
+        return usersRepository
+                .findByLogin(login)
+                .toSingle(new User().withLogin(login))
+                .flatMap(u -> { // generate password hash if this is new user
+                    if (u.getDbId() == null) {
+                        return hashAndSetPassword(plainPassword, u);
+                    } else {
+                        return Single.just(u);
+                    }
+                })
+                .flatMap(u -> usersRepository
+                        .save(u.withRoles(roles).withExplicitPermissions(explicitPermissions))
+                        .map(u::withDbId)
+                        .toSingle(u));
+    }
+
+    public Flowable<User> listAll() {
+        return list(0, -1);
+    }
+
+    public Flowable<User> list(int offset, int limit) {
+        return usersRepository.list(offset, limit);
+    }
+
+    public Single<Long> countUsers() {
+        return usersRepository.count();
     }
 
     public Single<JsonObject> loginUser(JsonObject userLoginInfo) {

@@ -17,7 +17,7 @@ import javax.inject.Singleton;
 @Singleton
 public class RefreshTokensRepository {
     private static final String COLLECTION_NAME = "refreshTokens";
-    private static final int LIST_ALL_BATCH_SIZE = 20;
+    private static final int LIST_BATCH_SIZE = 20;
     private static final String KEY_SUB = "sub";
     private static final String KEY_DEVICE_ID = "device_id";
     private static final String KEY_JTI = "jti";
@@ -152,9 +152,9 @@ public class RefreshTokensRepository {
         return list(0, -1);
     }
 
-    public Flowable<JsonObject> list(int skip, int limit) {
-        var opts = new FindOptions().setBatchSize(getListAllBatchSize())
-                .setSkip(skip)
+    public Flowable<JsonObject> list(int offset, int limit) {
+        var opts = new FindOptions().setBatchSize(getListBatchSize())
+                .setSkip(offset)
                 .setLimit(limit);
         return mongoClient.findBatchWithOptions(getCollectionName(), new JsonObject(), opts)
                 .toFlowable()
@@ -177,7 +177,7 @@ public class RefreshTokensRepository {
         return refreshTokenApp;
     }
 
-    private static int getListAllBatchSize() {
-        return LIST_ALL_BATCH_SIZE;
+    private static int getListBatchSize() {
+        return LIST_BATCH_SIZE;
     }
 }

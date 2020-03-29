@@ -4,6 +4,7 @@ import dburyak.demo.mybooks.domain.Permission;
 import dburyak.demo.mybooks.user.domain.Role;
 import dburyak.demo.mybooks.user.repository.RolesRepository;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -28,6 +29,12 @@ public class RoleService {
         return getPermissionsOfRoleNames(new HashSet<>(roles));
     }
 
+    public Flowable<Permission> getPermissionsOfRoleName(String roleName) {
+        return rolesRepository.findByName(roleName)
+                .flatMapPublisher(r -> Flowable.fromIterable(r.getPermissions()))
+                .distinct();
+    }
+
     public Flowable<Permission> getPermissionsOfRoles(Set<Role> roles) {
         return getPermissionsOfRoleNames(roles.stream()
                 .map(Role::getName)
@@ -36,5 +43,17 @@ public class RoleService {
 
     public Flowable<Permission> getPermissionsOfRoles(List<Role> roles) {
         return getPermissionsOfRoles(new HashSet<>(roles));
+    }
+
+    public Flowable<Permission> getPermissionsOfRole(Role role) {
+        return getPermissionsOfRoleName(role.getName());
+    }
+
+    public Flowable<Role> allRoles() {
+        return rolesRepository.list();
+    }
+
+    public Maybe<String> saveRole(Role role) {
+        return rolesRepository.save(role);
     }
 }

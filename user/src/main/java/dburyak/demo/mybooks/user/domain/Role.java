@@ -66,6 +66,11 @@ public class Role implements DomainObject<Role> {
         dbId = newDbId;
     }
 
+    public Role withDbId(String newDbId) {
+        setDbId(newDbId);
+        return this;
+    }
+
     public Set<Permission> getPermissions() {
         return permissions;
     }
@@ -74,10 +79,20 @@ public class Role implements DomainObject<Role> {
         this.permissions = permissions;
     }
 
+    public Role withPermissions(Set<Permission> permissions) {
+        setPermissions(permissions);
+        return this;
+    }
+
     public void setPermissionsByNames(Set<String> permissionNames) {
         this.permissions = permissionNames.stream()
                 .map(Permission::fromPermissionName)
                 .collect(Collectors.toSet());;
+    }
+
+    public Role withPermissionsByName(Set<String> permissionNames) {
+        setPermissionsByNames(permissionNames);
+        return this;
     }
 
     public String getName() {

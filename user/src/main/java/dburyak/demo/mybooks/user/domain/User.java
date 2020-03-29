@@ -46,6 +46,24 @@ public class User implements DomainObject<User> {
         setAllFromJson(userJson);
     }
 
+    public User(User copyFrom) {
+        this.dbId = copyFrom.getDbId();
+        this.userId = copyFrom.getUserId();
+        this.login = copyFrom.getLogin();
+        this.email = copyFrom.getEmail();
+        this.passwordHash = copyFrom.getPasswordHash();
+        this.explicitPermissions = copyFrom.getExplicitPermissions();
+        this.roles = copyFrom.getRoles();
+    }
+
+    public static User copy(User copyFrom) {
+        return new User(copyFrom);
+    }
+
+    public User copy() {
+        return new User(this);
+    }
+
     @Override
     public User setAllFromJson(JsonObject userJson) {
         dbId = userJson.getString(KEY_DB_ID);

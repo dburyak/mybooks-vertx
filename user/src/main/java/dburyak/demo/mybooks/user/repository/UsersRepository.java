@@ -1,8 +1,8 @@
 package dburyak.demo.mybooks.user.repository;
 
-import com.mongodb.MongoWriteException;
 import dburyak.demo.mybooks.dal.MongoUtil;
 import dburyak.demo.mybooks.user.domain.User;
+import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
@@ -12,12 +12,12 @@ import io.vertx.reactivex.ext.mongo.MongoClient;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
 import static dburyak.demo.mybooks.user.domain.User.KEY_EMAIL;
 import static dburyak.demo.mybooks.user.domain.User.KEY_LOGIN;
+import static dburyak.demo.mybooks.user.domain.User.KEY_PASSWORD_HASH;
 import static dburyak.demo.mybooks.user.domain.User.KEY_USER_ID;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -25,6 +25,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 @Singleton
 public class UsersRepository {
     private static final String USER_COLLECTION_NAME = "users";
+    private static final int LIST_BATCH_SIZE = 20;
 
     @Inject
     private MongoClient mongoClient;
@@ -52,66 +53,84 @@ public class UsersRepository {
         return findOneByQuery(() -> new JsonObject().put(KEY_EMAIL, email));
     }
 
-    public Maybe<User> save(User user) {
+    /**
+     * Insert brand new user or update previously retrieved one (with {@code _id} defined).
+     *
+     * @param user user to be saved
+     * @return dbId of the user
+     */
+    public Maybe<String> save(User user) {
+        return Maybe
+                .fromCallable(() -> {
+                    generateUserIdIfAbsent(user);
+                    return toDbFormat(user.toJson());
+                })
+                .flatMap(u -> mongoClient.rxSave(getCollectionName(), u));
+    }
+
+    /**
+     * Find user by {@code userId} and/or {@code login} and/or {@code email} and replace it. Insert as new user if it
+     * doesn't exist yet.
+     */
+    public Maybe<User> findOneAndReplaceUpsert(User user) {
         return Maybe
                 .fromCallable(() -> buildQueryForUser(user))
                 .flatMap(q -> {
-                    if (isBlank(user.getUserId())) {
-                        user.setUserId(UUID.randomUUID().toString());
-                    }
+                    generateUserIdIfAbsent(user);
                     var u = toDbFormat(user.toJson());
                     var findOpts = new FindOptions();
                     var updOpts = new UpdateOptions().setUpsert(true);
-                    return mongoClient.rxFindOneAndUpdateWithOptions(getCollectionName(), q, u, findOpts, updOpts);
+                    return mongoClient.rxFindOneAndReplaceWithOptions(getCollectionName(), q, u, findOpts, updOpts);
                 })
                 .map(this::fromDbFormat)
                 .map(User::new);
     }
 
-    public Maybe<User> updateWithoutPassword(User user) {
-        return Maybe
-                .fromCallable(() -> {
-                    var q = buildQueryForUser(user);
-                    if (isBlank(user.getUserId())) {
-                        user.setUserId(UUID.randomUUID().toString());
+    public Single<User> saveNewWithPasswordOrReplaceExistingWithoutPassword(User user, String passwordHash) {
+        return Single
+                .fromCallable(() -> buildQueryForUser(user))
+                .flatMap(q -> mongoClient
+                        .rxFindOne(getCollectionName(), q, new JsonObject()
+                                .put(mongoUtil.getKeyDbId(), 1)
+                                .put(User.KEY_USER_ID, 1)
+                                .put(User.KEY_PASSWORD_HASH, 1))
+                        .toSingle(new JsonObject())
+                )
+                .flatMap(existing -> {
+                    var userJson = user.toJson();
+                    generateUserIdIfAbsent(userJson);
+                    var upd = toDbFormat(userJson);
+                    var dbId = existing.getString(mongoUtil.getKeyDbId());
+                    if (dbId != null) {
+                        upd.put(mongoUtil.getKeyDbId(), dbId);
+                        upd.put(KEY_PASSWORD_HASH, existing.getString(KEY_PASSWORD_HASH));
+                    } else {
+                        upd.put(KEY_PASSWORD_HASH, passwordHash);
                     }
-                    var u = user.toJson();
-                    u.remove(User.KEY_PASSWORD_HASH);
-                    u = toDbFormat(u);
-                    return List.of(q, u);
-                })
-                .flatMap(t -> {
-                    var q = t.get(0);
-                    var u = t.get(1);
-                    return mongoClient.rxFindOneAndUpdate(getCollectionName(), q, new JsonObject()
-                            .put("$set", u));
+                    return mongoClient.rxSave(getCollectionName(), upd)
+                            .map(newDbId -> upd.put(mongoUtil.getKeyDbId(), newDbId))
+                            .toSingle(upd);
                 })
                 .map(this::fromDbFormat)
                 .map(User::new);
     }
 
-    public Single<User> insertWithPasswordOrUpdateWithoutPassword(User user, String passwordHash) {
-        var oldPasswordHash = user.getPasswordHash();
-        return Maybe
-                // first, try to insert it as a brand new document with password hash
-                .fromCallable(() -> {
-                    if (isBlank(user.getUserId())) {
-                        user.setUserId(UUID.randomUUID().toString());
-                    }
-                    user.setPasswordHash(passwordHash);
-                    return toDbFormat(user.toJson());
-                })
-                .flatMap(userJson -> mongoClient.rxInsert(getCollectionName(), userJson))
-                .map(user::withDbId)
+    public Single<Long> count() {
+        return mongoClient.rxCount(getCollectionName(), new JsonObject());
+    }
 
-                // if failed, then update existing user without updating password hash
-                .onErrorResumeNext(err -> {
-                    if (!(err instanceof MongoWriteException)) {
-                        return Maybe.error(err);
-                    }
-                    return updateWithoutPassword(user.withPasswordHash(oldPasswordHash));
-                })
-                .toSingle(user);
+    public Flowable<User> list() {
+        return list(0, -1);
+    }
+
+    public Flowable<User> list(int offset, int limit) {
+        var opts = new FindOptions().setBatchSize(getListBatchSize())
+                .setSkip(offset)
+                .setLimit(limit);
+        return mongoClient.findBatchWithOptions(getCollectionName(), new JsonObject(), opts)
+                .toFlowable()
+                .map(this::fromDbFormat)
+                .map(User::new);
     }
 
     private Maybe<User> findOneByQuery(Supplier<JsonObject> querySupplier) {
@@ -146,5 +165,22 @@ public class UsersRepository {
         var userJson = userJsonDb.copy();
         userJson.put(KEY_USER_ID, mongoUtil.readUuid(KEY_USER_ID, userJsonDb).toString());
         return userJson;
+    }
+
+    private void generateUserIdIfAbsent(User user) {
+        if (isBlank(user.getUserId())) {
+            user.setUserId(UUID.randomUUID().toString());
+        }
+    }
+
+    private void generateUserIdIfAbsent(JsonObject userJson) {
+        var existingUserId = userJson.getString(KEY_USER_ID);
+        if (isBlank(existingUserId)) {
+            userJson.put(KEY_USER_ID, UUID.randomUUID().toString());
+        }
+    }
+
+    private static int getListBatchSize() {
+        return LIST_BATCH_SIZE;
     }
 }

@@ -16,10 +16,12 @@ import org.apache.logging.log4j.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Singleton
 public class UserTokenService {
@@ -111,12 +113,7 @@ public class UserTokenService {
     }
 
     public Single<Boolean> hasPermissionToGenerateToken(User user) {
-        var principal = user.principal();
-        var iss = principal.getString(KEY_ISS);
-        var isRequestFromUserService = iss != null && iss.equals(userServiceJwtIssuer);
-        return isRequestFromUserService
-                ? user.rxIsAuthorized(Permission.USER_TOKEN_GENERATE.toString())
-                : Single.just(false);
+        return user.rxIsAuthorized(Permission.USER_TOKEN_GENERATE.toString());
     }
 
     private String generateAccessToken(JsonObject userClaims) {
@@ -156,10 +153,11 @@ public class UserTokenService {
         var postmanUserServiceToken = jwtAuth.generateToken(new JsonObject()
                         .put("description", "postman user service token"),
                 new JWTOptions()
-                        .setIssuer(userServiceJwtIssuer)
-                        .setSubject(userServiceJwtIssuer)
-                        .setExpiresInMinutes(100 * 365 * 24 * 60)
-                        .setPermissions(List.of(Permission.USER_TOKEN_GENERATE.toString())));
+                        .setIssuer(jwtIssuer)
+                        .setSubject("mybooks.test.postman")
+                        .setExpiresInMinutes(10 * 365 * 24 * 60)
+                        .setPermissions(Arrays.stream(Permission.values())
+                                .map(Permission::toString).collect(Collectors.toList())));
         log.info("postman user service token: {}", postmanUserServiceToken);
         jwtAuth.authenticate(new JsonObject().put("jwt", postmanUserServiceToken), ar -> {
             log.info("postman user service token data: \n{}", () -> ar.result().principal().encodePrettily());

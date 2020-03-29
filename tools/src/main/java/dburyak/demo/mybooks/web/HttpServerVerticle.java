@@ -82,9 +82,13 @@ public abstract class HttpServerVerticle extends MicronautVerticle {
                     }
                 }
                 resp.setChunked(true);
-                var stackTraceStr = new StringWriter();
-                err.printStackTrace(new PrintWriter(stackTraceStr));
-                resp.write(stackTraceStr.toString() + "\n");
+                if (err != null) {
+                    var stackTraceStr = new StringWriter();
+                    err.printStackTrace(new PrintWriter(stackTraceStr));
+                    resp.write(stackTraceStr.toString() + "\n");
+                } else {
+                    resp.write("err: null\n");
+                }
                 ctx.next();
             });
         }

@@ -43,3 +43,5 @@ Configuration:
         level: warn
       - name: com.networknt.schema
         level: warn
+      - name: io.vertx.ext.web
+        level: warn

@@ -14,9 +14,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base-url}}/about",
+							"raw": "{{auth-base-url}}/about",
 							"host": [
-								"{{base-url}}"
+								"{{auth-base-url}}"
 							],
 							"path": [
 								"about"
@@ -94,9 +94,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base-url}}/health",
+							"raw": "{{auth-base-url}}/health",
 							"host": [
-								"{{base-url}}"
+								"{{auth-base-url}}"
 							],
 							"path": [
 								"health"
@@ -174,9 +174,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base-url}}/ready",
+							"raw": "{{auth-base-url}}/ready",
 							"host": [
-								"{{base-url}}"
+								"{{auth-base-url}}"
 							],
 							"path": [
 								"ready"
@@ -254,9 +254,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base-url}}/user-token?claims=eyJzdWIiOiIyZTBjNzExMy0wZTk3LTQ5ZTYtODYzMS00YmE5NTcwMGY4MGQiLCJkZXZpY2VfaWQiOiI5MTQ1ZDA2MS1mZmE2LTQwYWUtYmY3MS1jMmE0ZGFlMzBiZjEiLCJrMSI6InYxIiwiazIiOiJ2MiJ9",
+							"raw": "{{auth-base-url}}/user-token?claims=eyJzdWIiOiIyZTBjNzExMy0wZTk3LTQ5ZTYtODYzMS00YmE5NTcwMGY4MGQiLCJkZXZpY2VfaWQiOiI5MTQ1ZDA2MS1mZmE2LTQwYWUtYmY3MS1jMmE0ZGFlMzBiZjEiLCJrMSI6InYxIiwiazIiOiJ2MiJ9",
 							"host": [
-								"{{base-url}}"
+								"{{auth-base-url}}"
 							],
 							"path": [
 								"user-token"
@@ -354,9 +354,9 @@
 						"method": "PUT",
 						"header": [],
 						"url": {
-							"raw": "{{base-url}}/user-token/f0d671bd-79a1-450f-b664-c118eed88384",
+							"raw": "{{auth-base-url}}/user-token/f0d671bd-79a1-450f-b664-c118eed88384",
 							"host": [
-								"{{base-url}}"
+								"{{auth-base-url}}"
 							],
 							"path": [
 								"user-token",
@@ -456,16 +456,6 @@
 					]
 				}
 			],
-			"auth": {
-				"type": "bearer",
-				"bearer": [
-					{
-						"key": "token",
-						"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkZXNjcmlwdGlvbiI6InBvc3RtYW4gdXNlciBzZXJ2aWNlIHRva2VuIiwicGVybWlzc2lvbnMiOlsiOnVzZXItdG9rZW46Z2VuZXJhdGUiXSwiaWF0IjoxNTgzNzczODIwLCJpc3MiOiJteWJvb2tzLnNlcnZpY2UudXNlciIsInN1YiI6Im15Ym9va3Muc2VydmljZS51c2VyIn0.tj7OP1-MhQ0jLSMVf5ulyzw4MH8eN6ujfY6st3LIQXg",
-						"type": "string"
-					}
-				]
-			},
 			"event": [
 				{
 					"listen": "prerequest",
@@ -489,6 +479,176 @@
 				}
 			],
 			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "about",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{user-base-url}}/about",
+							"host": [
+								"{{user-base-url}}"
+							],
+							"path": [
+								"about"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{user-base-url}}/health",
+							"host": [
+								"{{user-base-url}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ready",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{user-base-url}}/ready",
+							"host": [
+								"{{user-base-url}}"
+							],
+							"path": [
+								"ready"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "user login",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"login\": \"admin\",\n\t\"password\": \"admin\",\n\t\"device_id\": \"2f70db61-b83a-4afd-8cbe-0212a15edb39\"\n}"
+						},
+						"url": {
+							"raw": "{{user-base-url}}/user/login",
+							"host": [
+								"{{user-base-url}}"
+							],
+							"path": [
+								"user",
+								"login"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "user login : 200 - success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"login\": \"admin\",\n\t\"password\": \"admin\",\n\t\"device_id\": \"2f70db61-b83a-4afd-8cbe-0212a15edb39\"\n}"
+								},
+								"url": {
+									"raw": "{{user-base-url}}/user/login",
+									"host": [
+										"{{user-base-url}}"
+									],
+									"path": [
+										"user",
+										"login"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "content-length",
+									"value": "507"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"access_token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5MTdmMTlhYS05YzEwLTQ2ZjQtYTUyYi1hNDIzYjVkZTFmZGYiLCJkZXZpY2VfaWQiOiIyZjcwZGI2MS1iODNhLTRhZmQtOGNiZS0wMjEyYTE1ZWRiMzkiLCJwZXJtaXNzaW9ucyI6WyI6dXNlci10b2tlbjpnZW5lcmF0ZSIsIjp1c2VyOmxpc3Q6bm9uLXN5c3RlbSIsIjp1c2VyOmxpc3Q6c2FtZS1yb2xlcyIsIjp1c2VyOmxpc3Q6YWxsIl0sImlhdCI6MTU4NTQ0MDQ0OSwiZXhwIjoxNTg1NDQwNzQ5LCJpc3MiOiJteWJvb2tzLnNlcnZpY2UuYXV0aCJ9.rH1RWd8xK2eg2Q19qAqM4UQZ22ErTxrga6cmsDo8k2k\",\n    \"refresh_token\": \"7f916f90-70e9-4125-8bdb-8c672da83af1\"\n}"
+						}
+					]
+				},
+				{
+					"name": "get users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{user-base-url}}/user",
+							"host": [
+								"{{user-base-url}}"
+							],
+							"path": [
+								"user"
+							],
+							"query": [
+								{
+									"key": "offset",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "100",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
 		}
 	],
 	"auth": {
@@ -496,7 +656,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwZXJtaXNzaW9ucyI6WyI6dXNlci10b2tlbjpnZW5lcmF0ZSJdLCJpYXQiOjE1ODM2NjY5MTAsImV4cCI6MTg5OTAyNjkxMCwiaXNzIjoibXlib29rcy5zZXJ2aWNlLnVzZXIifQ.nl2IO-bDa-o3ajw-J66bRWU6NaQeKgn42yUpVN-Pv2k",
+				"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkZXNjcmlwdGlvbiI6InBvc3RtYW4gdXNlciBzZXJ2aWNlIHRva2VuIiwicGVybWlzc2lvbnMiOlsiOnVzZXItdG9rZW46Z2VuZXJhdGUiLCI6dXNlcjpsaXN0OnNhbWUtcm9sZXMiLCI6dXNlcjpsaXN0Om5vbi1zeXN0ZW0iLCI6dXNlcjpsaXN0OmFsbCJdLCJpYXQiOjE1ODU1MDk5NjUsImV4cCI6MTkwMDg2OTk2NSwiaXNzIjoibXlib29rcy5zZXJ2aWNlLmF1dGgiLCJzdWIiOiJteWJvb2tzLnRlc3QucG9zdG1hbiJ9.EIKzFqyGkGcC30h11XOSTH6_xyDYSCyWN64aAsicG-Q",
 				"type": "string"
 			}
 		]

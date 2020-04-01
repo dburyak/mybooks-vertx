@@ -42,3 +42,7 @@ db:
     cache:
       cache-1Lvl-enabled: false
       cache-2Lvl-enabled: false
+
+user-token:
+  refresh:
+    cleanup-period-min: 5

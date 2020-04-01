@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -110,6 +111,11 @@ public class UserTokenService {
                 .map(t2 -> new JsonObject()
                         .put(KEY_ACCESS_TOKEN, generateAccessToken((JsonObject) t2.get(0)))
                         .put(KEY_REFRESH_TOKEN, t2.get(1)));
+    }
+
+    public Single<Long> deleteAllExpiredRefreshTokens() {
+        var nowSec = Instant.now().getEpochSecond();
+        return refreshTokensRepository.deleteAllWhereExpIsBefore(nowSec);
     }
 
     public Single<Boolean> hasPermissionToGenerateToken(User user) {

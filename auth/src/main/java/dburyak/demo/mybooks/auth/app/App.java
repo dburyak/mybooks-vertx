@@ -19,6 +19,7 @@ public class App extends MicronautVertxApplication {
     public List<MicronautVerticleProducer<?>> getVerticlesProducers() {
         return List.<MicronautVerticleProducer<?>>of(
                 new DbInitVerticle.Producer(),
+                new DbCleanupVerticle.Producer(),
                 new AboutVerticle.Producer(),
                 new HealthVerticle.Producer(),
                 new HttpServerVerticle.Producer(),

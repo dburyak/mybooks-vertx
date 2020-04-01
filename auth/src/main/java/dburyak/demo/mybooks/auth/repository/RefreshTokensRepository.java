@@ -1,5 +1,6 @@
 package dburyak.demo.mybooks.auth.repository;
 
+import dburyak.demo.mybooks.auth.service.UserTokenService;
 import dburyak.demo.mybooks.dal.MongoUtil;
 import io.micronaut.context.annotation.Property;
 import io.reactivex.Flowable;
@@ -122,7 +123,7 @@ public class RefreshTokensRepository {
         return Single
                 .fromCallable(() -> {
                     var q = new JsonObject();
-                    mongoUtil.putUuid(sub,KEY_SUB, q);
+                    mongoUtil.putUuid(sub, KEY_SUB, q);
                     mongoUtil.putUuid(deviceId, KEY_DEVICE_ID, q);
                     return q;
                 })
@@ -159,6 +160,16 @@ public class RefreshTokensRepository {
         return mongoClient.findBatchWithOptions(getCollectionName(), new JsonObject(), opts)
                 .toFlowable()
                 .map(this::fromDbFormat);
+    }
+
+    public Single<Long> deleteAllWhereExpIsBefore(long epochSeconds) {
+        return Single
+                .fromCallable(() -> new JsonObject().put(UserTokenService.KEY_EXP, new JsonObject()
+                        .put(MongoUtil.OPERATOR_GTE, epochSeconds)))
+                .flatMap(q -> mongoClient
+                        .rxRemoveDocuments(getCollectionName(), q)
+                        .map(MongoClientDeleteResult::getRemovedCount)
+                        .toSingle(0L));
     }
 
     private JsonObject toDbFormat(JsonObject refreshTokenApp) {

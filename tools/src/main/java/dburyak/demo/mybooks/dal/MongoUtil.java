@@ -15,6 +15,11 @@ public class MongoUtil {
     public static final String OPERATOR_IN = "$in";
     public static final String OPERATOR_NOT = "$not";
 
+    /**
+     * Greater or equal to.
+     */
+    public static final String OPERATOR_GTE = "$gte";
+
     public String getKeyDbId() {
         return KEY_DB_ID;
     }

@@ -48,3 +48,5 @@ password:
 list:
   max-limit:
     list-all-users: 200
+  default-limit:
+    list-all-users: 25

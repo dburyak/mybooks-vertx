@@ -5,6 +5,7 @@ import dburyak.demo.mybooks.MicronautVerticleProducer;
 import dburyak.demo.mybooks.domain.Permission;
 import dburyak.demo.mybooks.user.domain.Role;
 import dburyak.demo.mybooks.user.domain.User;
+import dburyak.demo.mybooks.user.repository.RolesRepository;
 import dburyak.demo.mybooks.user.repository.UsersRepository;
 import dburyak.demo.mybooks.user.service.RoleService;
 import dburyak.demo.mybooks.user.service.UserService;
@@ -53,9 +54,10 @@ public class DbInitVerticle extends MicronautVerticle {
                 .andThen(registerIsInitializedEbConsumer())
                 .andThen(createUsersCollection())
                 .andThen(createUserIdIndex())
-                .andThen(createLoginIndex())
-                .andThen(createEmailIndex())
-                .andThen(createRolesIndex())
+                .andThen(createUsersLoginIndex())
+                .andThen(createUsersEmailIndex())
+                .andThen(createUsersRolesIndex())
+                .andThen(createRolesNameIndex())
                 .andThen(createAdminRole())
                 .andThen(createAdminUser())
                 .doOnComplete(() -> {
@@ -88,7 +90,7 @@ public class DbInitVerticle extends MicronautVerticle {
                 .onErrorComplete();
     }
 
-    private Completable createLoginIndex() {
+    private Completable createUsersLoginIndex() {
         var indexName = "users_login_index";
         var indexOpts = new IndexOptions().name(indexName).unique(true);
         var indexKeys = new JsonObject()
@@ -97,7 +99,7 @@ public class DbInitVerticle extends MicronautVerticle {
                 .onErrorComplete();
     }
 
-    private Completable createEmailIndex() {
+    private Completable createUsersEmailIndex() {
         var indexName = "users_email_index";
         var indexOpts = new IndexOptions().name(indexName).unique(true);
         var indexKeys = new JsonObject()
@@ -106,13 +108,21 @@ public class DbInitVerticle extends MicronautVerticle {
                 .onErrorComplete();
     }
 
-    private Completable createRolesIndex() {
+    private Completable createUsersRolesIndex() {
         var indexName = "users_roles_index";
-        var indexOpts = new IndexOptions().name(indexName).unique(true);
+        var indexOpts = new IndexOptions().name(indexName).unique(false);
         var indexKeys = new JsonObject()
                 .put(User.KEY_ROLES, 1);
         return createIndex(UsersRepository.getCollectionName(), indexName, indexKeys, indexOpts)
                 .onErrorComplete();
+    }
+
+    private Completable createRolesNameIndex() {
+        var indexName = "roles_name_index";
+        var indexOpts = new IndexOptions().name(indexName).unique(true);
+        var indexKeys = new JsonObject()
+                .put(Role.KEY_NAME, 1);
+        return createIndex(RolesRepository.getCollectionName(), indexName, indexKeys, indexOpts);
     }
 
     private Completable createIndex(String collectionName, String indexName, JsonObject indexKeys,
@@ -128,7 +138,7 @@ public class DbInitVerticle extends MicronautVerticle {
         return Maybe
                 .fromCallable(() -> new HashSet<>(Arrays.asList(Permission.values())))
                 .flatMap(allPermissions ->
-                        roleService.saveRole(new Role().withName("admin").withPermissions(allPermissions)))
+                        roleService.save(roleName, true, allPermissions))
                 .doOnSubscribe(ignr -> log.debug("creating role: roleName={}", roleName))
                 .doOnComplete(() -> log.debug("role created: roleName={}", roleName))
                 .doOnError(err -> log.error("failed to create role: roleName={}", roleName, err))
@@ -141,7 +151,7 @@ public class DbInitVerticle extends MicronautVerticle {
         return roleService
                 .allRoles()
                 .toList()
-                .flatMap(allRoles -> {
+                .flatMapMaybe(allRoles -> {
                     var allPermissions = new HashSet<>(Arrays.asList(Permission.values()));
                     var allRoleNames = allRoles.stream().map(Role::getName).collect(Collectors.toSet());
                     return userService.saveNewUserOrUpdateExistingWithoutPassword(login, password,

@@ -1,6 +1,7 @@
 package dburyak.demo.mybooks.user.repository;
 
 import dburyak.demo.mybooks.dal.MongoUtil;
+import dburyak.demo.mybooks.domain.Permission;
 import dburyak.demo.mybooks.user.domain.Role;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
@@ -8,6 +9,7 @@ import io.reactivex.Single;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
+import io.vertx.ext.mongo.UpdateOptions;
 import io.vertx.reactivex.ext.mongo.MongoClient;
 
 import javax.inject.Inject;
@@ -16,12 +18,12 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import static dburyak.demo.mybooks.dal.MongoUtil.KEY_DB_ID;
 import static dburyak.demo.mybooks.dal.MongoUtil.OPERATOR_IN;
 
 @Singleton
 public class RolesRepository {
     private static final int LIST_BATCH_SIZE = 20;
-    private static final int FIND_ALL_BY_NAMES_BATCH_SIZE = 20;
 
     public static final String COLLECTION_NAME = "roles";
 
@@ -44,15 +46,13 @@ public class RolesRepository {
     }
 
     public Flowable<Role> findAllByNames(Set<String> roleNames) {
-        return Single
-                .fromCallable(() -> new JsonObject().put(Role.KEY_NAME, new JsonObject()
-                        .put(OPERATOR_IN, new JsonArray(new ArrayList<>(roleNames)))))
-                .flatMapPublisher(q -> {
-                    var opts = new FindOptions().setBatchSize(getFindAllByNamesBatchSize());
-                    return mongoClient.findBatchWithOptions(getCollectionName(), q, opts)
-                            .toFlowable();
-                })
-                .map(Role::new);
+        return findByQuery(() -> new JsonObject().put(Role.KEY_NAME, new JsonObject()
+                        .put(OPERATOR_IN, new JsonArray(new ArrayList<>(roleNames)))),
+                getListBatchSize());
+    }
+
+    public Flowable<Role> findAllByIsSystem(boolean isSystem) {
+        return findByQuery(() -> new JsonObject().put(Role.KEY_IS_SYSTEM, isSystem), getListBatchSize());
     }
 
     public Flowable<Role> list() {
@@ -65,6 +65,7 @@ public class RolesRepository {
                 .setLimit(limit);
         return mongoClient.findBatchWithOptions(getCollectionName(), new JsonObject(), opts)
                 .toFlowable()
+                .map(this::fromDbFormat)
                 .map(Role::new);
     }
 
@@ -74,18 +75,45 @@ public class RolesRepository {
                 .flatMap(roleJson -> mongoClient.rxSave(getCollectionName(), roleJson));
     }
 
+    public Maybe<String> save(String name, boolean isSystem, Set<Permission> permissions) {
+        var q = new JsonObject().put(Role.KEY_NAME, name);
+        var u = new Role().withName(name).withSystem(isSystem).withPermissions(permissions).toJson();
+        var findOpts = new FindOptions();
+        var updOpts = new UpdateOptions().setUpsert(true);
+        return mongoClient.rxFindOneAndReplaceWithOptions(getCollectionName(), q, toDbFormat(u), findOpts, updOpts)
+                .map(this::fromDbFormat)
+                .map(oldRoleJson -> oldRoleJson.getString(KEY_DB_ID));
+    }
+
     private Maybe<Role> findOneByQuery(Supplier<JsonObject> querySupplier) {
         return Maybe
                 .fromCallable(querySupplier::get)
                 .flatMap(q -> mongoClient.rxFindOne(getCollectionName(), q, null))
+                .map(this::fromDbFormat)
                 .map(Role::new);
+    }
+
+    private Flowable<Role> findByQuery(Supplier<JsonObject> querySupplier, int batchSize) {
+        return Single
+                .fromCallable(querySupplier::get)
+                .flatMapPublisher(q -> {
+                    var opts = new FindOptions().setBatchSize(batchSize);
+                    return mongoClient.findBatchWithOptions(getCollectionName(), q, opts)
+                            .toFlowable();
+                })
+                .map(this::fromDbFormat)
+                .map(Role::new);
+    }
+
+    private JsonObject fromDbFormat(JsonObject dbRoleJson) {
+        return mongoUtil.withDecodedObjectId(dbRoleJson);
+    }
+
+    private JsonObject toDbFormat(JsonObject appRoleJson) {
+        return mongoUtil.withEncodedObjectId(appRoleJson);
     }
 
     private int getListBatchSize() {
         return LIST_BATCH_SIZE;
-    }
-
-    private int getFindAllByNamesBatchSize() {
-        return FIND_ALL_BY_NAMES_BATCH_SIZE;
     }
 }

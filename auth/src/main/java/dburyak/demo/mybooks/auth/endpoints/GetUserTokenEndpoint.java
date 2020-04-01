@@ -3,6 +3,7 @@ package dburyak.demo.mybooks.auth.endpoints;
 import dburyak.demo.mybooks.auth.service.UserTokenService;
 import dburyak.demo.mybooks.web.Endpoint;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -116,7 +117,7 @@ public class GetUserTokenEndpoint implements Endpoint {
             var userClaims = ctx.<JsonObject>get(CTX_KEY_USER_CLAIMS_JSON);
             userTokenService.generateTokens(userClaims)
                     .subscribe(tokensJson -> {
-                        ctx.response().putHeader("content-type", "application/json")
+                        ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
                                 .end(tokensJson.encode());
                     }, err -> {
                         ctx.fail(err);

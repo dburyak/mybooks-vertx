@@ -11,6 +11,7 @@ import io.micronaut.context.annotation.Property;
 import io.micronaut.context.annotation.Value;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.vertx.core.http.HttpHeaders;
@@ -34,6 +35,8 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -56,9 +59,6 @@ public class UserService {
 
     @Value("${password.bcrypt-hash-cost:15}")
     private int bcryptHashCost;
-
-    @Value("${list.max-limit.list-all-users:200}")
-    private int listAllUsersMaxLimit;
 
     @Inject
     private ServiceDiscovery discovery;
@@ -150,7 +150,7 @@ public class UserService {
         return Single.error(() -> new AssertionError("not implemented"));
     }
 
-    public Single<User> saveNewUserOrUpdateExistingWithoutPassword(String login, String plainPassword,
+    public Maybe<User> saveNewUserOrUpdateExistingWithoutPassword(String login, String plainPassword,
             Set<String> roles, Set<Permission> explicitPermissions) {
         return usersRepository
                 .findByLogin(login)
@@ -162,13 +162,11 @@ public class UserService {
                         return Single.just(u);
                     }
                 })
-                .flatMap(u -> usersRepository
-                        .save(u.withRoles(roles).withExplicitPermissions(explicitPermissions))
-                        .map(u::withDbId)
-                        .toSingle(u));
+                .flatMapMaybe(u -> usersRepository
+                        .findOneAndReplaceUpsert(u.withRoles(roles).withExplicitPermissions(explicitPermissions)));
     }
 
-    public Flowable<User> listAll() {
+    public Flowable<User> list() {
         return list(0, -1);
     }
 
@@ -176,8 +174,56 @@ public class UserService {
         return usersRepository.list(offset, limit);
     }
 
-    public Single<Long> countUsers() {
+    public Flowable<User> findWithRoles(Set<String> roles) {
+        return findWithRoles(roles, 0, -1);
+    }
+
+    public Flowable<User> findWithRoles(List<String> roles) {
+        return findWithRoles(new HashSet<>(roles), 0, -1);
+    }
+
+    public Flowable<User> findWithoutRoles(Set<String> roles) {
+        return findWithoutRoles(roles, 0, -1);
+    }
+
+    public Flowable<User> findWithoutRoles(List<String> roles) {
+        return findWithoutRoles(new HashSet<>(roles), 0, -1);
+    }
+
+    public Flowable<User> findWithRoles(Set<String> roles, int offset, int limit) {
+        return usersRepository.listWithRoles(roles, offset, limit);
+    }
+
+    public Flowable<User> findWithRoles(List<String> roles, int offset, int limit) {
+        return usersRepository.listWithRoles(new HashSet<>(roles), offset, limit);
+    }
+
+    public Flowable<User> findWithoutRoles(Set<String> roles, int offset, int limit) {
+        return usersRepository.listWithoutRoles(roles, offset, limit);
+    }
+
+    public Flowable<User> findWithoutRoles(List<String> roles, int offset, int limit) {
+        return usersRepository.listWithoutRoles(new HashSet<>(roles), offset, limit);
+    }
+
+    public Single<Long> count() {
         return usersRepository.count();
+    }
+
+    public Maybe<User> findByUserId(String userId) {
+        return usersRepository.findByUserId(userId);
+    }
+
+    public Maybe<User> findByAnyOf(String userId, String login, String email) {
+        return usersRepository.findByAnyOf(userId, login, email);
+    }
+
+    public Observable<String> findRolesOfUserByAnyOf(String userId, String login, String email) {
+        return usersRepository.findRolesOfUserByAnyOf(userId, login, email);
+    }
+
+    public Observable<String> findRolesOfUserByUserId(String userId) {
+        return findRolesOfUserByAnyOf(userId, null, null);
     }
 
     public Single<JsonObject> loginUser(JsonObject userLoginInfo) {

@@ -53,7 +53,19 @@ public class RoleService {
         return rolesRepository.list();
     }
 
-    public Maybe<String> saveRole(Role role) {
+    public Flowable<Role> allSystemRoles() {
+        return rolesRepository.findAllByIsSystem(true);
+    }
+
+    public Flowable<Role> allNonSystemRoles() {
+        return rolesRepository.findAllByIsSystem(false);
+    }
+
+    public Maybe<String> save(Role role) {
         return rolesRepository.save(role);
+    }
+
+    public Maybe<String> save(String name, boolean isSystem, Set<Permission> permissions) {
+        return rolesRepository.save(name, isSystem, permissions);
     }
 }

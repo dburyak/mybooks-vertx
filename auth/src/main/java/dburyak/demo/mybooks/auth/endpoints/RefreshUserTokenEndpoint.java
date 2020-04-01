@@ -4,6 +4,7 @@ import dburyak.demo.mybooks.auth.service.RefreshTokenNotRegisteredException;
 import dburyak.demo.mybooks.auth.service.UserTokenService;
 import dburyak.demo.mybooks.web.Endpoint;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.reactivex.ext.web.Route;
 import io.vertx.reactivex.ext.web.RoutingContext;
@@ -53,7 +54,7 @@ public class RefreshUserTokenEndpoint implements Endpoint {
         Handler<RoutingContext> h = (RoutingContext ctx) -> {
             userTokenService.refreshTokens(ctx.pathParam(PATH_PARAM_REFRESH_TOKEN_ID))
                     .subscribe(newTokensJson -> {
-                        ctx.response().putHeader("content-type", "application/json")
+                        ctx.response().putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
                                 .end(newTokensJson.encode());
                     }, err -> {
                         if (err instanceof RefreshTokenNotRegisteredException) {

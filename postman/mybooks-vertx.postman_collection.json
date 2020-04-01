@@ -634,18 +634,62 @@
 							"query": [
 								{
 									"key": "offset",
-									"value": "0",
+									"value": "5",
 									"disabled": true
 								},
 								{
 									"key": "limit",
-									"value": "100",
+									"value": "10",
 									"disabled": true
 								}
 							]
 						}
 					},
-					"response": []
+					"response": [
+						{
+							"name": "get users : 200 - no params",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{user-base-url}}/user",
+									"host": [
+										"{{user-base-url}}"
+									],
+									"path": [
+										"user"
+									],
+									"query": [
+										{
+											"key": "offset",
+											"value": "5",
+											"disabled": true
+										},
+										{
+											"key": "limit",
+											"value": "10",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "content-type",
+									"value": "application/json"
+								},
+								{
+									"key": "content-length",
+									"value": "212"
+								}
+							],
+							"cookie": [],
+							"body": "[\n    {\n        \"user_id\": \"559c557f-8768-40b5-9abb-8c2ccbef3cb6\",\n        \"login\": \"admin\",\n        \"email\": null,\n        \"explicit_permissions\": [\n            \":user:list:non-system\",\n            \":user:list:all\",\n            \":user-token:generate\",\n            \":user:list:same-roles\"\n        ],\n        \"roles\": [\n            \"admin\"\n        ]\n    }\n]"
+						}
+					]
 				}
 			],
 			"protocolProfileBehavior": {}

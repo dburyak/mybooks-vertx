@@ -14,9 +14,11 @@ import static dburyak.demo.mybooks.dal.MongoUtil.KEY_DB_ID;
 public class Role implements DomainObject<Role> {
     public static final String KEY_NAME = "name";
     public static final String KEY_PERMISSIONS = "permissions";
+    public static final String KEY_IS_SYSTEM = "isSystem";
 
     private String dbId;
     private String name;
+    private boolean isSystem;
     private Set<Permission> permissions;
 
     public Role() {
@@ -30,6 +32,7 @@ public class Role implements DomainObject<Role> {
     public Role setAllFromJson(JsonObject json) {
         this.dbId = json.getString(KEY_DB_ID);
         this.name = json.getString(KEY_NAME);
+        this.isSystem = json.getBoolean(KEY_IS_SYSTEM, false);
         var permissionsJson = json.getJsonArray(KEY_PERMISSIONS);
         if (permissionsJson != null && !permissionsJson.isEmpty()) {
             this.permissions = permissionsJson.stream()
@@ -43,7 +46,8 @@ public class Role implements DomainObject<Role> {
     @Override
     public JsonObject toJson() {
         var json = new JsonObject()
-                .put(KEY_NAME, name);
+                .put(KEY_NAME, name)
+                .put(KEY_IS_SYSTEM, isSystem);
         if (dbId != null && !dbId.isEmpty()) {
             json.put(KEY_DB_ID, dbId);
         }
@@ -105,6 +109,19 @@ public class Role implements DomainObject<Role> {
 
     public Role withName(String name) {
         setName(name);
+        return this;
+    }
+
+    public boolean isSystem() {
+        return isSystem;
+    }
+
+    public void setSystem(boolean system) {
+        isSystem = system;
+    }
+
+    public Role withSystem(boolean isSystem) {
+        setSystem(isSystem);
         return this;
     }
 
